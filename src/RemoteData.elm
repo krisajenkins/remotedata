@@ -258,8 +258,8 @@ fromResult result =
 {-| Append - join two `RemoteData` values together as though
 they were one.
 
-If their value is `NotAsked`, the result is `NotAsked`.
-If their value is `Loading`, the result is `Loading`.
+If either value is `NotAsked`, the result is `NotAsked`.
+If either value is `Loading`, the result is `Loading`.
 If both values are `Failure`, the left one wins.
 -}
 append : RemoteData e a -> RemoteData e b -> RemoteData e ( a, b )
@@ -309,7 +309,7 @@ settings, but that only makes sense once those settings have been
 returned from the server.
 
 This function makes it more convenient to reach inside a
-`RemoteData.Success` value and apply an update. If the data in not
+`RemoteData.Success` value and apply an update. If the data is not
 `Success a`, it is return unchanged with a `Cmd.none`.
 
 -}
