@@ -313,9 +313,15 @@ This function makes it more convenient to reach inside a
 `Success a`, it is return unchanged with a `Cmd.none`.
 
 -}
-update : (a -> ( a, Cmd b )) -> RemoteData e a -> ( RemoteData e a, Cmd b )
+update : (a -> ( b, Cmd c )) -> RemoteData e a -> ( RemoteData e b, Cmd c )
 update f remoteData =
     case remoteData of
+        NotAsked ->
+            ( NotAsked, Cmd.none )
+
+        Loading ->
+            ( Loading, Cmd.none )
+
         Success data ->
             let
                 ( first, second ) =
@@ -323,5 +329,5 @@ update f remoteData =
             in
                 ( Success first, second )
 
-        _ ->
-            ( remoteData, Cmd.none )
+        Failure error ->
+            ( Failure error, Cmd.none )
