@@ -149,7 +149,18 @@ type alias WebData a =
 -}
 map : (a -> b) -> RemoteData e a -> RemoteData e b
 map f data =
-    f <$> data
+    case data of
+        Success value ->
+            Success (f value)
+
+        Loading ->
+            Loading
+
+        NotAsked ->
+            NotAsked
+
+        Failure error ->
+            Failure error
 
 
 {-| Map a function into the `Failure` value.
