@@ -325,18 +325,18 @@ This function makes it more convenient to reach inside a
 update : (a -> ( b, Cmd c )) -> RemoteData e a -> ( RemoteData e b, Cmd c )
 update f remoteData =
     case remoteData of
-        NotAsked ->
-            ( NotAsked, Cmd.none )
-
-        Loading ->
-            ( Loading, Cmd.none )
-
         Success data ->
             let
                 ( first, second ) =
                     f data
             in
                 ( Success first, second )
+
+        NotAsked ->
+            ( NotAsked, Cmd.none )
+
+        Loading ->
+            ( Loading, Cmd.none )
 
         Failure error ->
             ( Failure error, Cmd.none )
