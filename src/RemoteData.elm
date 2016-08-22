@@ -149,18 +149,7 @@ type alias WebData a =
 -}
 map : (a -> b) -> RemoteData e a -> RemoteData e b
 map f data =
-    case data of
-        Success x ->
-            Success (f x)
-
-        Failure e ->
-            Failure e
-
-        Loading ->
-            Loading
-
-        NotAsked ->
-            NotAsked
+    f <$> data
 
 
 {-| Map a function into the `Failure` value.
@@ -273,27 +262,47 @@ If both values are `Failure`, the left one wins.
 -}
 append : RemoteData e a -> RemoteData e b -> RemoteData e ( a, b )
 append a b =
-    case ( a, b ) of
-        ( Success x, Success y ) ->
-            Success ( x, y )
+    (,) <$> a <*> b
 
-        ( Failure x, _ ) ->
-            Failure x
 
-        ( _, Failure y ) ->
-            Failure y
+pure : a -> RemoteData e a
+pure =
+    Success
 
-        ( NotAsked, _ ) ->
-            NotAsked
 
-        ( _, NotAsked ) ->
-            NotAsked
+apply : RemoteData e (a -> b) -> RemoteData e a -> RemoteData e b
+apply wrappedFunction wrappedValue =
+    case ( wrappedFunction, wrappedValue ) of
+        ( Success f, Success value ) ->
+            Success (f value)
 
         ( Loading, _ ) ->
             Loading
 
+        ( NotAsked, _ ) ->
+            NotAsked
+
+        ( Failure error, _ ) ->
+            Failure error
+
         ( _, Loading ) ->
             Loading
+
+        ( _, NotAsked ) ->
+            NotAsked
+
+        ( _, Failure error ) ->
+            Failure error
+
+
+(<$>) : (a -> b) -> RemoteData c a -> RemoteData c b
+(<$>) =
+    map
+
+
+(<*>) : RemoteData a (b -> c) -> RemoteData a b -> RemoteData a c
+(<*>) =
+    apply
 
 
 {-| State-checking predicate. Returns true if we've successfully loaded some data.
