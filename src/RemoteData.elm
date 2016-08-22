@@ -3,6 +3,7 @@ module RemoteData
         ( RemoteData(..)
         , WebData
         , fromResult
+        , toMaybe
         , andThen
         , withDefault
         , asCmd
@@ -109,6 +110,7 @@ handling the different states in the UI gracefully:
 @docs andThen
 @docs withDefault
 @docs fromResult
+@docs toMaybe
 @docs asCmd
 @docs fromTask
 @docs append
@@ -253,6 +255,13 @@ fromResult result =
 
         Ok x ->
             Success x
+
+
+{-| Convert a `RemoteData e a` to a `Maybe a`
+-}
+toMaybe : RemoteData e a -> Maybe a
+toMaybe =
+    map Just >> withDefault Nothing
 
 
 {-| Append - join two `RemoteData` values together as though
