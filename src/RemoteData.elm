@@ -306,12 +306,12 @@ apply wrappedFunction wrappedValue =
             Failure error
 
 
-(<$>) : (a -> b) -> RemoteData c a -> RemoteData c b
+(<$>) : (a -> b) -> RemoteData e a -> RemoteData e b
 (<$>) =
     map
 
 
-(<*>) : RemoteData a (b -> c) -> RemoteData a b -> RemoteData a c
+(<*>) : RemoteData e (a -> b) -> RemoteData e a -> RemoteData e b
 (<*>) =
     apply
 
