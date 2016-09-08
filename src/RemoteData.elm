@@ -106,6 +106,8 @@ handling the different states in the UI gracefully:
             [h1 [] [text "Here is the news."]
             , ...]
 
+And that's it. A more accurate model of what's happening leads to a better UI.
+
 @docs RemoteData
 @docs WebData
 @docs map
@@ -296,12 +298,6 @@ implemented as:
     append a b =
         (,) <$> a <*> b
 -}
-pure : a -> RemoteData e a
-pure =
-    Success
-
-
-{-| -}
 apply : RemoteData e (a -> b) -> RemoteData e a -> RemoteData e b
 apply wrappedFunction wrappedValue =
     case ( wrappedFunction, wrappedValue ) of
@@ -327,8 +323,13 @@ apply wrappedFunction wrappedValue =
             Failure error
 
 
-{-| Infix operators for the applicative instance for `RemoteData`.
--}
+{-| -}
+pure : a -> RemoteData e a
+pure =
+    Success
+
+
+{-| -}
 (<$>) : (a -> b) -> RemoteData e a -> RemoteData e b
 (<$>) =
     map
