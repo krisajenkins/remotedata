@@ -14,6 +14,10 @@ module RemoteData
         , mapFailure
         , mapBoth
         , update
+        , pure
+        , apply
+        , (<$>)
+        , (<*>)
         )
 
 {-| A datatype representing fetched data.
@@ -116,6 +120,10 @@ handling the different states in the UI gracefully:
 @docs append
 @docs isSuccess
 @docs update
+@docs pure
+@docs apply
+@docs (<$>)
+@docs (<*>)
 
 -}
 
@@ -276,11 +284,24 @@ append a b =
     (,) <$> a <*> b
 
 
+{-| Applicative instance for `RemoteData`.
+
+If you know what that means, then you know if you need this.
+
+If not, this probably isn't the place for an applicatve tutorial, but
+the gist is it makes it easy to create functions that merge several
+`RemoteData` values together. For example, `RemoteData.append` is
+implemented as:
+
+    append a b =
+        (,) <$> a <*> b
+-}
 pure : a -> RemoteData e a
 pure =
     Success
 
 
+{-| -}
 apply : RemoteData e (a -> b) -> RemoteData e a -> RemoteData e b
 apply wrappedFunction wrappedValue =
     case ( wrappedFunction, wrappedValue ) of
@@ -306,11 +327,14 @@ apply wrappedFunction wrappedValue =
             Failure error
 
 
+{-| Infix operators for the applicative instance for `RemoteData`.
+-}
 (<$>) : (a -> b) -> RemoteData e a -> RemoteData e b
 (<$>) =
     map
 
 
+{-| -}
 (<*>) : RemoteData e (a -> b) -> RemoteData e a -> RemoteData e b
 (<*>) =
     apply
