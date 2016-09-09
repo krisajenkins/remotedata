@@ -14,18 +14,19 @@ tests =
 
 mapTests : Test
 mapTests =
-    suite "map"
-        <| List.map defaultTest
-        <| List.map
-            (\( input, output ) ->
-                assertEqual output
-                    (map ((*) 3) input)
-            )
-            [ ( Success 2, Success 6 )
-            , ( NotAsked, NotAsked )
-            , ( Loading, Loading )
-            , ( Failure "error", Failure "error" )
-            ]
+    let
+        check ( input, output ) =
+            assertEqual output
+                (map ((*) 3) input)
+    in
+        suite "map"
+            <| List.map defaultTest
+            <| List.map check
+                [ ( Success 2, Success 6 )
+                , ( NotAsked, NotAsked )
+                , ( Loading, Loading )
+                , ( Failure "error", Failure "error" )
+                ]
 
 
 prismTests : Test
