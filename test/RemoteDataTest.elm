@@ -7,7 +7,9 @@ import RemoteData exposing (..)
 tests : Test
 tests =
     suite "RemoteData"
-        [ mapTests ]
+        [ mapTests
+        , prismTests
+        ]
 
 
 mapTests : Test
@@ -23,4 +25,13 @@ mapTests =
             , ( NotAsked, NotAsked )
             , ( Loading, Loading )
             , ( Failure "error", Failure "error" )
+            ]
+
+
+prismTests : Test
+prismTests =
+    suite "webDataPrism"
+        <| List.map defaultTest
+            [ assertEqual (Just 5)
+                (prism.getOption (prism.reverseGet 5))
             ]

@@ -7,7 +7,8 @@ import RemoteDataTest
 tests : Test
 tests =
     suite "All"
-        [ RemoteDataTest.tests ]
+        [ RemoteDataTest.tests
+        ]
 
 
 main : Program Never

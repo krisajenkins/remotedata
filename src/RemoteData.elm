@@ -18,6 +18,7 @@ module RemoteData
         , apply
         , (<$>)
         , (<*>)
+        , prism
         )
 
 {-| A datatype representing fetched data.
@@ -126,6 +127,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs apply
 @docs (<$>)
 @docs (<*>)
+@docs prism
 
 -}
 
@@ -385,3 +387,30 @@ update f remoteData =
 
         Failure error ->
             ( Failure error, Cmd.none )
+
+
+{-| A monocle-compatible Prism.
+
+If you use Monocle, you'll want this, otherwise you can ignore it.
+
+The type signature is actually:
+
+    prism : Prism (RemoteData e a) a
+
+...but we use the more verbose type here to avoid introducing a dependency on Monocle.
+-}
+prism :
+    { getOption : RemoteData e a -> Maybe a
+    , reverseGet : a -> RemoteData e a
+    }
+prism =
+    { reverseGet = Success
+    , getOption =
+        \data ->
+            case data of
+                Success value ->
+                    Just value
+
+                _ ->
+                    Nothing
+    }
