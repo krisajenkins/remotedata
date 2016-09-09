@@ -1,5 +1,5 @@
 {
-    "version": "2.2.1",
+    "version": "2.3.0",
     "summary": "Tools for fetching data from remote sources (incl. HTTP).",
     "repository": "https://github.com/krisajenkins/remotedata.git",
     "license": "MIT",
