@@ -11,6 +11,7 @@ module RemoteData
         , append
         , map
         , isSuccess
+        , isFailure
         , mapFailure
         , mapBoth
         , update
@@ -122,6 +123,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs fromTask
 @docs append
 @docs isSuccess
+@docs isFailure
 @docs update
 @docs pure
 @docs apply
@@ -349,6 +351,18 @@ isSuccess : RemoteData e a -> Bool
 isSuccess data =
     case data of
         Success x ->
+            True
+
+        _ ->
+            False
+
+
+{-| State-checking predicate. Returns true if we've failed to load some data.
+-}
+isFailure : RemoteData e a -> Bool
+isFailure data =
+    case data of
+        Failure x ->
             True
 
         _ ->
