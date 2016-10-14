@@ -380,7 +380,7 @@ returned from the server.
 
 This function makes it more convenient to reach inside a
 `RemoteData.Success` value and apply an update. If the data is not
-`Success a`, it is return unchanged with a `Cmd.none`.
+`Success a`, it is returned unchanged with a `Cmd.none`.
 
 -}
 update : (a -> ( b, Cmd c )) -> RemoteData e a -> ( RemoteData e b, Cmd c )
