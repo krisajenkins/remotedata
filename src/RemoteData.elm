@@ -16,7 +16,7 @@ module RemoteData
         , isFailure
         , isLoading
         , isNotAsked
-        , mapFailure
+        , mapError
         , mapBoth
         , update
         , prism
@@ -119,7 +119,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs map
 @docs andMap
 @docs succeed
-@docs mapFailure
+@docs mapError
 @docs mapBoth
 @docs andThen
 @docs withDefault
@@ -183,8 +183,8 @@ map f data =
 
 {-| Map a function into the `Failure` value.
 -}
-mapFailure : (e -> f) -> RemoteData e a -> RemoteData f a
-mapFailure f data =
+mapError : (e -> f) -> RemoteData e a -> RemoteData f a
+mapError f data =
     case data of
         Success x ->
             Success x
