@@ -12,6 +12,8 @@ module RemoteData
         , map
         , isSuccess
         , isFailure
+        , isLoading
+        , isNotAsked
         , mapFailure
         , mapBoth
         , update
@@ -128,6 +130,8 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs append
 @docs isSuccess
 @docs isFailure
+@docs isLoading
+@docs isNotAsked
 @docs update
 @docs pure
 @docs apply
@@ -367,6 +371,30 @@ isFailure : RemoteData e a -> Bool
 isFailure data =
     case data of
         Failure x ->
+            True
+
+        _ ->
+            False
+
+
+{-| State-checking predicate. Returns true if we're loading.
+-}
+isLoading : RemoteData e a -> Bool
+isLoading data =
+    case data of
+        Loading ->
+            True
+
+        _ ->
+            False
+
+
+{-| State-checking predicate. Returns true if we haven't asked for data yet.
+-}
+isNotAsked : RemoteData e a -> Bool
+isNotAsked data =
+    case data of
+        NotAsked ->
             True
 
         _ ->
