@@ -10,6 +10,8 @@ module RemoteData
         , fromTask
         , append
         , map
+        , andMap
+        , succeed
         , isSuccess
         , isFailure
         , isLoading
@@ -17,10 +19,6 @@ module RemoteData
         , mapFailure
         , mapBoth
         , update
-        , pure
-        , apply
-        , (<$>)
-        , (<*>)
         , prism
         )
 
@@ -119,6 +117,8 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs RemoteData
 @docs WebData
 @docs map
+@docs andMap
+@docs succeed
 @docs mapFailure
 @docs mapBoth
 @docs andThen
@@ -133,10 +133,6 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs isLoading
 @docs isNotAsked
 @docs update
-@docs pure
-@docs apply
-@docs (<$>)
-@docs (<*>)
 @docs prism
 
 -}
@@ -295,23 +291,51 @@ If both values are `Failure`, the left one wins.
 -}
 append : RemoteData e a -> RemoteData e b -> RemoteData e ( a, b )
 append a b =
-    (,) <$> a <*> b
+    map (,) a
+        |> andMap b
 
 
-{-| Applicative instance for `RemoteData`.
+{-| Put the results of two RemoteData calls together.
 
-If you know what that means, then you know if you need this.
+For example, if you were fetching three datasets, `a`, `b` and `c`,
+and wanted to end up with a tuple of all three, you could say:
 
-If not, this probably isn't the place for an applicatve tutorial, but
-the gist is it makes it easy to create functions that merge several
-`RemoteData` values together. For example, `RemoteData.append` is
-implemented as:
+``` elm
+merge3 :
+    RemoteData e a
+    -> RemoteData e b
+    -> RemoteData e c
+    -> RemoteData e ( a, b, c )
+merge3 a b c =
+    map (,,) a
+        |> andMap b
+        |> andMap c
+```
 
-    append a b =
-        (,) <$> a <*> b
+The final tuple succeeds only if all its children succeeded.  It is
+loading if _any_ of its children are loading. And if any child fails,
+the error is the first available error value.
+
+This provides a general pattern for `map2`, `map3`, .., `mapN`. If you
+want `map5`, just use:
+
+``` elm
+foo f a b c d e =
+    map f a
+        |> andMap b
+        |> andMap c
+        |> andMap d
+        |> andMap e
+```
+
+It's a general recipe that doesn't require us to ever have the
+discussion, "Could you just add `map7`? Could you just add `map8`?
+Could you just...".
+
+This is `apply` in applicative functor terms, with the arguments flipped.
 -}
-apply : RemoteData e (a -> b) -> RemoteData e a -> RemoteData e b
-apply wrappedFunction wrappedValue =
+andMap : RemoteData e a -> RemoteData e (a -> b) -> RemoteData e b
+andMap wrappedValue wrappedFunction =
     case ( wrappedFunction, wrappedValue ) of
         ( Success f, Success value ) ->
             Success (f value)
@@ -335,22 +359,13 @@ apply wrappedFunction wrappedValue =
             Failure error
 
 
-{-| -}
-pure : a -> RemoteData e a
-pure =
+{-| Lift an ordinary value into the realm of RemoteData.
+
+This is `pure` in applicative functor terms.
+-}
+succeed : a -> RemoteData e a
+succeed =
     Success
-
-
-{-| -}
-(<$>) : (a -> b) -> RemoteData e a -> RemoteData e b
-(<$>) =
-    map
-
-
-{-| -}
-(<*>) : RemoteData e (a -> b) -> RemoteData e a -> RemoteData e b
-(<*>) =
-    apply
 
 
 {-| State-checking predicate. Returns true if we've successfully loaded some data.
