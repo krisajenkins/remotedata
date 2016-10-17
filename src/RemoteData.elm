@@ -313,8 +313,8 @@ merge3 a b c =
 ```
 
 The final tuple succeeds only if all its children succeeded.  It is
-loading if _any_ of its children are loading. And if any child fails,
-the error is the first available error value.
+still `Loading` if _any_ of its children are still `Loading`. And if any child fails,
+the error is the leftmost `Failure` value.
 
 This provides a general pattern for `map2`, `map3`, .., `mapN`. If you
 want `map5`, just use:
