@@ -39,47 +39,49 @@ To use the datatype, let's look at an example that loads `News` from a feed.
 First you add to your model, wrapping the data you want in `WebData`:
 
 
-    type alias Model =
-        { news : WebData News }
-
+``` elm
+type alias Model =
+    { news : WebData News }
+```
 
 Then add in a message that will deliver the response:
 
-
-    type alias Msg
-        = NewsResponse (WebData News)
-
+``` elm
+type alias Msg
+    = NewsResponse (WebData News)
+```
 
 Now we can create an HTTP get:
 
+``` elm
+getNews : Cmd Msg
+getNews =
+    Http.get decodeNews "/news"
+        |> RemoteData.asCmd
+        |> Cmd.map NewsResponse
 
-    getNews : Cmd Msg
-    getNews =
-        Http.get decodeNews "/news"
-            |> RemoteData.asCmd
-            |> Cmd.map NewsResponse
-
+```
 
 We trigger it in our `init` function:
 
-
-    init : ( Model, Cmd Msg)
-    init =
-        ( { news = Loading }
-        , getNews
-        )
-
+``` elm
+init : ( Model, Cmd Msg)
+init =
+    ( { news = Loading }
+    , getNews
+    )
+```
 
 We handle it in our `update` function:
 
-
-    update msg model =
-        case msg of
-            NewsResponse response ->
-                ( { model | news = response }
-                , Cmd.none
-                )
-
+``` elm
+update msg model =
+    case msg of
+        NewsResponse response ->
+            ( { model | news = response }
+            , Cmd.none
+            )
+```
 
 
 Most of this you'd already have in your app, and the changes are just
@@ -90,23 +92,25 @@ Now we get to where we really want to be, rendering the data and
 handling the different states in the UI gracefully:
 
 
-    view : Model -> Html msg
-    view model =
-      case model.news of
-        NotAsked -> text "Initialising."
+``` elm
+view : Model -> Html msg
+view model =
+  case model.news of
+    NotAsked -> text "Initialising."
 
-        Loading -> text "Loading."
+    Loading -> text "Loading."
 
-        Failure err -> text ("Error: " ++ toString err)
+    Failure err -> text ("Error: " ++ toString err)
 
-        Success news -> viewNews news
+    Success news -> viewNews news
 
 
-    viewNews : News -> Html msg
-    viewNews news =
-        div []
-            [h1 [] [text "Here is the news."]
-            , ...]
+viewNews : News -> Html msg
+viewNews news =
+    div []
+        [h1 [] [text "Here is the news."]
+        , ...]
+```
 
 And that's it. A more accurate model of what's happening leads to a better UI.
 
@@ -409,7 +413,9 @@ If you use Monocle, you'll want this, otherwise you can ignore it.
 
 The type signature is actually:
 
-    prism : Prism (RemoteData e a) a
+``` elm
+prism : Prism (RemoteData e a) a
+```
 
 ...but we use the more verbose type here to avoid introducing a dependency on Monocle.
 -}
