@@ -8,3 +8,4 @@ Changes inline with the Elm 0.18 release.
 * `($)` and `(*)` were moved to `RemoteData.Infix`.
 * `pure` became `succeed`, to fall in line with Elm core.
 * `mapFailure` became `mapError`, to fall in line with Elm core.
+* `fromTask` no longer exists, following changes to the underling `Task` API.

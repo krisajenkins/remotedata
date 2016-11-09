@@ -1,6 +1,6 @@
 module RemoteDataTest exposing (tests)
 
-import ElmTest exposing (..)
+import Legacy.ElmTest exposing (..)
 import RemoteData exposing (..)
 
 

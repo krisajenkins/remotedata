@@ -7,7 +7,6 @@ module RemoteData
         , andThen
         , withDefault
         , asCmd
-        , fromTask
         , append
         , map
         , andMap
@@ -126,7 +125,6 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs fromResult
 @docs toMaybe
 @docs asCmd
-@docs fromTask
 @docs append
 @docs isSuccess
 @docs isFailure
@@ -250,17 +248,8 @@ withDefault default data =
 {-| Convert a web `Task`, probably produced from elm-http, to a `Cmd (RemoteData e a)`.
 -}
 asCmd : Task e a -> Cmd (RemoteData e a)
-asCmd task =
-    Task.perform Failure Success task
-
-
-{-| Convert from a `Task` that may succeed or fail, to one that always
-succeeds with the `RemoteData` that captures any errors.
--}
-fromTask : Task e a -> Task Never (RemoteData e a)
-fromTask =
-    Task.toResult
-        >> Task.map fromResult
+asCmd =
+    Task.attempt fromResult
 
 
 {-| Convert a `Result Error`, probably produced from elm-http, to a RemoteData value.

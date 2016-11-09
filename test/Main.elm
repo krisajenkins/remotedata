@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import ElmTest exposing (..)
+import Legacy.ElmTest exposing (..)
 import RemoteDataTest
 
 
@@ -11,6 +11,6 @@ tests =
         ]
 
 
-main : Program Never
+main : Program Never () msg
 main =
     runSuite tests
