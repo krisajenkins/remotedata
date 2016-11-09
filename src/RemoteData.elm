@@ -302,11 +302,11 @@ merge3 a b c =
 ```
 
 The final tuple succeeds only if all its children succeeded.  It is
-still `Loading` if _any_ of its children are still `Loading`. And if any child fails,
-the error is the leftmost `Failure` value.
+still `Loading` if _any_ of its children are still `Loading`. And if
+any child fails, the error is the leftmost `Failure` value.
 
-This provides a general pattern for `map2`, `map3`, .., `mapN`. If you
-want `map5`, just use:
+Note that this provides a general pattern for `map2`, `map3`, ..,
+`mapN`. If you find yourself wanting `map5`, just use:
 
 ``` elm
 foo f a b c d e =
@@ -321,7 +321,7 @@ It's a general recipe that doesn't require us to ever have the
 discussion, "Could you just add `map7`? Could you just add `map8`?
 Could you just...".
 
-This is `apply` in applicative functor terms, with the arguments flipped.
+Category theory points: This is `apply` with the arguments flipped.
 -}
 andMap : RemoteData e a -> RemoteData e (a -> b) -> RemoteData e b
 andMap wrappedValue wrappedFunction =
@@ -329,28 +329,28 @@ andMap wrappedValue wrappedFunction =
         ( Success f, Success value ) ->
             Success (f value)
 
+        ( Failure error, _ ) ->
+            Failure error
+
+        ( _, Failure error ) ->
+            Failure error
+
         ( Loading, _ ) ->
+            Loading
+
+        ( _, Loading ) ->
             Loading
 
         ( NotAsked, _ ) ->
             NotAsked
 
-        ( Failure error, _ ) ->
-            Failure error
-
-        ( _, Loading ) ->
-            Loading
-
         ( _, NotAsked ) ->
             NotAsked
-
-        ( _, Failure error ) ->
-            Failure error
 
 
 {-| Lift an ordinary value into the realm of RemoteData.
 
-This is `pure` in applicative functor terms.
+Category theory points: This is `pure`.
 -}
 succeed : a -> RemoteData e a
 succeed =
