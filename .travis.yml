@@ -1,6 +1,8 @@
 language: haskell
 install:
-  - npm install -g elm
-  - elm-package install -y
+  - wget http://install.elm-lang.org/Elm-Platform-0.18-beta-2.tar.gz
+  - tar -zxvf Elm-Platform-0.18-beta-2.tar.gz
+  - ls -la bundle
+  - PATH=./bundle:$PATH elm-package install -y
 script:
-  - make
+  - ./bundle:$PATH make
