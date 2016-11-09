@@ -255,16 +255,17 @@ withDefault default data =
 -}
 asCmd : Task e a -> Cmd (RemoteData e a)
 asCmd task =
-    Task.perform Failure Success task
+    Task.attempt fromResult task
 
 
 {-| Convert from a `Task` that may succeed or fail, to one that always
 succeeds with the `RemoteData` that captures any errors.
 -}
 fromTask : Task e a -> Task Never (RemoteData e a)
-fromTask =
-    Task.toResult
-        >> Task.map fromResult
+fromTask t =
+    t
+        |> Task.map (\x -> Success x)
+        |> Task.onError (\e -> Task.succeed (Failure e))
 
 
 {-| Convert a `Result Error`, probably produced from elm-http, to a RemoteData value.
