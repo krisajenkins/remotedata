@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.0
+
+Changes inline with the Elm 0.18 release.
+
+* The order the arguments for `andThen` are flipped.
+
 ## 3.0.0
 
 Changes inline with the Elm 0.18 release.

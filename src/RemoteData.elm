@@ -217,8 +217,8 @@ mapBoth successFn errorFn data =
 
 {-| Chain together RemoteData function calls.
 -}
-andThen : RemoteData e a -> (a -> RemoteData e b) -> RemoteData e b
-andThen data f =
+andThen : (a -> RemoteData e b) -> RemoteData e a -> RemoteData e b
+andThen f data =
     case data of
         Success a ->
             f a
