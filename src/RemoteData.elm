@@ -55,10 +55,8 @@ Now we can create an HTTP get:
 ``` elm
 getNews : Cmd Msg
 getNews =
-    Http.get decodeNews "/news"
-        |> RemoteData.asCmd
-        |> Cmd.map NewsResponse
-
+    Http.send (NewsResponse << RemoteData.fromResult) <|
+        Http.get "/news" decodeNews
 ```
 
 We trigger it in our `init` function:
@@ -84,8 +82,8 @@ update msg model =
 
 
 Most of this you'd already have in your app, and the changes are just
-wrapping the datatype in `Webdata`, and updating the `Http.get` call
-to add in `RemoteData.asCmd`.
+wrapping the datatype in `Webdata`, and updating the `Http.send` call
+to add in `RemoteData.fromResult`.
 
 Now we get to where we really want to be, rendering the data and
 handling the different states in the UI gracefully:
