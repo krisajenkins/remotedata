@@ -2,6 +2,7 @@ module RemoteData
     exposing
         ( RemoteData(..)
         , WebData
+        , sendRequest
         , fromResult
         , toMaybe
         , andThen
@@ -55,8 +56,9 @@ Now we can create an HTTP get:
 ``` elm
 getNews : Cmd Msg
 getNews =
-    Http.send (NewsResponse << RemoteData.fromResult) <|
-        Http.get "/news" decodeNews
+    Http.get "/news" decodeNews
+        |> RemoteData.sendRequest
+        |> Cmd.map NewsResponse
 ```
 
 We trigger it in our `init` function:
@@ -82,8 +84,8 @@ update msg model =
 
 
 Most of this you'd already have in your app, and the changes are just
-wrapping the datatype in `Webdata`, and updating the `Http.send` call
-to add in `RemoteData.fromResult`.
+wrapping the datatype in `Webdata`, and replacing the `Http.send` call
+with `RemoteData.sendRequest`.
 
 Now we get to where we really want to be, rendering the data and
 handling the different states in the UI gracefully:
@@ -120,6 +122,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs mapBoth
 @docs andThen
 @docs withDefault
+@docs sendRequest
 @docs fromResult
 @docs toMaybe
 @docs asCmd
@@ -260,6 +263,21 @@ fromResult result =
 
         Ok x ->
             Success x
+
+
+{-| Convenience function for dispatching `Http.Request`s. It's like
+`Http.send`, but yields a `WebData` response.
+
+``` elm
+getNews : Cmd Msg
+getNews =
+    Http.get "/news" decodeNews
+        |> RemoteData.sendRequest
+```
+-}
+sendRequest : Http.Request a -> Cmd (WebData a)
+sendRequest =
+    Http.send fromResult
 
 
 {-| Convert a `RemoteData e a` to a `Maybe a`
