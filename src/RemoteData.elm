@@ -18,6 +18,7 @@ module RemoteData
         , isNotAsked
         , mapError
         , mapBoth
+        , fromTask
         , update
         , prism
         )
@@ -120,6 +121,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs succeed
 @docs mapError
 @docs mapBoth
+@docs fromTask
 @docs andThen
 @docs withDefault
 @docs sendRequest
@@ -419,6 +421,17 @@ isNotAsked data =
 
         _ ->
             False
+
+
+{-| Convert a task to RemoteData.
+
+This is fairly low-level. Most people will use `sendRequest` instead
+and stay above `Task`s entirely.
+-}
+fromTask : Task e a -> Task x (RemoteData e a)
+fromTask =
+    Task.map Success
+        >> Task.onError (Failure >> Task.succeed)
 
 
 {-| Apply an Elm update function - `Model -> (Model, Cmd Msg)` - to any `Successful`-ly loaded data.
