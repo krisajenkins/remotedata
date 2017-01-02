@@ -20,14 +20,14 @@ merge3 a b c =
 import RemoteData exposing (RemoteData)
 
 
-{-| Infix form of map. For those who like their applicative functors Haskell-style.
+{-| Infix form of `map`. For those who like their applicative functors Haskell-style.
 -}
 (<$>) : (a -> b) -> RemoteData e a -> RemoteData e b
 (<$>) =
     RemoteData.map
 
 
-{-| Infix form of (flip andMap). For those who like their applicative functors Haskell-style.
+{-| Infix form of `(flip andMap)`. For those who like their applicative functors Haskell-style.
 
 
 -}
