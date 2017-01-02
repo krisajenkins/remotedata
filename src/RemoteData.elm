@@ -343,26 +343,17 @@ Category theory points: This is `apply` with the arguments flipped.
 -}
 andMap : RemoteData e a -> RemoteData e (a -> b) -> RemoteData e b
 andMap wrappedValue wrappedFunction =
-    case ( wrappedFunction, wrappedValue ) of
-        ( Success f, Success value ) ->
-            Success (f value)
+    case wrappedFunction of
+        Success f ->
+            map f wrappedValue
 
-        ( Failure error, _ ) ->
+        Failure error ->
             Failure error
 
-        ( _, Failure error ) ->
-            Failure error
-
-        ( Loading, _ ) ->
+        Loading ->
             Loading
 
-        ( _, Loading ) ->
-            Loading
-
-        ( NotAsked, _ ) ->
-            NotAsked
-
-        ( _, NotAsked ) ->
+        NotAsked ->
             NotAsked
 
 
