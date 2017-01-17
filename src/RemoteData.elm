@@ -10,6 +10,8 @@ module RemoteData
         , asCmd
         , append
         , map
+        , map2
+        , map3
         , andMap
         , succeed
         , isSuccess
@@ -117,6 +119,8 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs RemoteData
 @docs WebData
 @docs map
+@docs map2
+@docs map3
 @docs andMap
 @docs succeed
 @docs mapError
@@ -180,6 +184,36 @@ map f data =
 
         Failure error ->
             Failure error
+
+
+{-| Combine two remote data sources with the given function. The
+result will succeed when (and if) both sources succeed.
+-}
+map2 :
+    (a -> b -> c)
+    -> RemoteData e a
+    -> RemoteData e b
+    -> RemoteData e c
+map2 f a b =
+    map f a
+        |> andMap b
+
+
+{-| Combine three remote data sources with the given function. The
+result will succeed when (and if) both sources succeed.
+
+If you need `map4`, `map5`, etc, see the documentation for `andMap`.
+-}
+map3 :
+    (a -> b -> c -> d)
+    -> RemoteData e a
+    -> RemoteData e b
+    -> RemoteData e c
+    -> RemoteData e d
+map3 f a b c =
+    map f a
+        |> andMap b
+        |> andMap c
 
 
 {-| Map a function into the `Failure` value.
@@ -324,7 +358,7 @@ still `Loading` if _any_ of its children are still `Loading`. And if
 any child fails, the error is the leftmost `Failure` value.
 
 Note that this provides a general pattern for `map2`, `map3`, ..,
-`mapN`. If you find yourself wanting `map5`, just use:
+`mapN`. If you find yourself wanting `map4` or `map5`, just use:
 
 ``` elm
 foo f a b c d e =
