@@ -200,7 +200,7 @@ map2 f a b =
 
 
 {-| Combine three remote data sources with the given function. The
-result will succeed when (and if) both sources succeed.
+result will succeed when (and if) all three sources succeed.
 
 If you need `map4`, `map5`, etc, see the documentation for `andMap`.
 -}
