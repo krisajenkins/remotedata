@@ -218,7 +218,10 @@ map3 f a b c =
 
 {-| Map a function into the `Failure` value.
 -}
-mapError : (e -> f) -> RemoteData e a -> RemoteData f a
+mapError :
+    (e -> f)
+    -> RemoteData e a
+    -> RemoteData f a
 mapError f data =
     case data of
         Success x ->
@@ -236,7 +239,11 @@ mapError f data =
 
 {-| Map function into both the `Success` and `Failure` value.
 -}
-mapBoth : (a -> b) -> (e -> f) -> RemoteData e a -> RemoteData f b
+mapBoth :
+    (a -> b)
+    -> (e -> f)
+    -> RemoteData e a
+    -> RemoteData f b
 mapBoth successFn errorFn data =
     case data of
         Success x ->
@@ -254,7 +261,10 @@ mapBoth successFn errorFn data =
 
 {-| Chain together RemoteData function calls.
 -}
-andThen : (a -> RemoteData e b) -> RemoteData e a -> RemoteData e b
+andThen :
+    (a -> RemoteData e b)
+    -> RemoteData e a
+    -> RemoteData e b
 andThen f data =
     case data of
         Success a ->
@@ -330,7 +340,10 @@ If either value is `NotAsked`, the result is `NotAsked`.
 If either value is `Loading`, the result is `Loading`.
 If both values are `Failure`, the left one wins.
 -}
-append : RemoteData e a -> RemoteData e b -> RemoteData e ( a, b )
+append :
+    RemoteData e a
+    -> RemoteData e b
+    -> RemoteData e ( a, b )
 append a b =
     map (,) a
         |> andMap b
