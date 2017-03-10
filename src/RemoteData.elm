@@ -50,7 +50,7 @@ type alias Model =
 Then add in a message that will deliver the response:
 
 ``` elm
-type alias Msg
+type Msg
     = NewsResponse (WebData News)
 ```
 
