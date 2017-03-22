@@ -67,7 +67,7 @@ getNews =
 We trigger it in our `init` function:
 
 ``` elm
-init : ( Model, Cmd Msg)
+init : ( Model, Cmd Msg )
 init =
     ( { news = Loading }
     , getNews
