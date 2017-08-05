@@ -485,6 +485,20 @@ This function makes it more convenient to reach inside a
 `RemoteData.Success` value and apply an update. If the data is not
 `Success a`, it is returned unchanged with a `Cmd.none`.
 
+``` elm
+update msg model =
+    case msg of
+      EnabledChanged isEnabled ->
+        let
+          ( settings, cmd ) =
+            RemoteData.update (updateEnabledSetting isEnabled) model.settings
+        in
+          ( { model | settings = settings }, cmd )
+
+updateEnabledSetting isEnabled settings =
+  ( { settings | isEnabled = isEnabled }, Cmd.none )
+```
+
 -}
 update : (a -> ( b, Cmd c )) -> RemoteData e a -> ( RemoteData e b, Cmd c )
 update f remoteData =
