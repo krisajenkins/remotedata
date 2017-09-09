@@ -29,6 +29,6 @@ make
 
 ## License
 
-Copyright © 2015-2016 Kris Jenkins
+Copyright © 2015-2017 Kris Jenkins
 
 Distributed under the MIT license.
