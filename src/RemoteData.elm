@@ -244,19 +244,8 @@ mapBoth :
     -> (e -> f)
     -> RemoteData e a
     -> RemoteData f b
-mapBoth successFn errorFn data =
-    case data of
-        Success x ->
-            Success (successFn x)
-
-        Failure e ->
-            Failure (errorFn e)
-
-        Loading ->
-            Loading
-
-        NotAsked ->
-            NotAsked
+mapBoth successFn errorFn =
+    mapError errorFn << map successFn
 
 
 {-| Chain together RemoteData function calls.
