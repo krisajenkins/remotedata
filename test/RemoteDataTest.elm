@@ -8,6 +8,7 @@ tests : Test
 tests =
     suite "RemoteData"
         [ mapTests
+        , andMapTests
         , mapBothTests
         , prismTests
         ]
@@ -53,4 +54,14 @@ prismTests =
         List.map defaultTest
             [ assertEqual (Just 5)
                 (prism.getOption (prism.reverseGet 5))
+            ]
+
+
+andMapTests : Test
+andMapTests =
+    suite "andMap" <|
+        List.map defaultTest
+            [ assertEqual (andMap (Success 5) (Success ((*) 2))) (Success 10)
+            , assertEqual (andMap (Failure "nope") Loading) (Failure "nope")
+            , assertEqual (andMap Loading (Failure "nope")) (Failure "nope")
             ]
