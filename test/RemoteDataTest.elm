@@ -20,9 +20,9 @@ mapTests =
             assertEqual output
                 (map ((*) 3) input)
     in
-        suite "map"
-            <| List.map defaultTest
-            <| List.map check
+    suite "map" <|
+        List.map defaultTest <|
+            List.map check
                 [ ( Success 2, Success 6 )
                 , ( NotAsked, NotAsked )
                 , ( Loading, Loading )
@@ -37,9 +37,9 @@ mapBothTests =
             assertEqual output
                 (mapBoth ((*) 3) ((++) "error") input)
     in
-        suite "mapBoth"
-            <| List.map defaultTest
-            <| List.map check
+    suite "mapBoth" <|
+        List.map defaultTest <|
+            List.map check
                 [ ( Success 2, Success 6 )
                 , ( NotAsked, NotAsked )
                 , ( Loading, Loading )
@@ -49,8 +49,8 @@ mapBothTests =
 
 prismTests : Test
 prismTests =
-    suite "webDataPrism"
-        <| List.map defaultTest
+    suite "webDataPrism" <|
+        List.map defaultTest
             [ assertEqual (Just 5)
                 (prism.getOption (prism.reverseGet 5))
             ]
