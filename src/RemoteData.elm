@@ -33,30 +33,27 @@ where they can be quietly ignored, consider using this. It makes it
 easier to represent the real state of a remote data fetch and handle
 it properly.
 
-
 For more on the motivation, take a look at the blog post [How Elm Slays A UI Antipattern](http://blog.jenkster.com/2016/06/how-elm-slays-a-ui-antipattern.html).
-
 
 To use the datatype, let's look at an example that loads `News` from a feed.
 
 First you add to your model, wrapping the data you want in `WebData`:
 
-
-``` elm
+```elm
 type alias Model =
     { news : WebData News }
 ```
 
 Then add in a message that will deliver the response:
 
-``` elm
+```elm
 type Msg
     = NewsResponse (WebData News)
 ```
 
 Now we can create an HTTP get:
 
-``` elm
+```elm
 getNews : Cmd Msg
 getNews =
     Http.get "/news" decodeNews
@@ -66,7 +63,7 @@ getNews =
 
 We trigger it in our `init` function:
 
-``` elm
+```elm
 init : ( Model, Cmd Msg )
 init =
     ( { news = Loading }
@@ -76,7 +73,7 @@ init =
 
 We handle it in our `update` function:
 
-``` elm
+```elm
 update msg model =
     case msg of
         NewsResponse response ->
@@ -85,7 +82,6 @@ update msg model =
             )
 ```
 
-
 Most of this you'd already have in your app, and the changes are just
 wrapping the datatype in `Webdata`, and replacing the `Http.send` call
 with `RemoteData.sendRequest`.
@@ -93,8 +89,7 @@ with `RemoteData.sendRequest`.
 Now we get to where we really want to be, rendering the data and
 handling the different states in the UI gracefully:
 
-
-``` elm
+```elm
 view : Model -> Html msg
 view model =
   case model.news of
@@ -147,10 +142,12 @@ import Task exposing (Task)
 
 
 {-| Frequently when you're fetching data from an API, you want to represent four different states:
-  * `NotAsked` - We haven't asked for the data yet.
-  * `Loading` - We've asked, but haven't got an answer yet.
-  * `Failure` - We asked, but something went wrong. Here's the error.
-  * `Success` - Everything worked, and here's the data.
+
+  - `NotAsked` - We haven't asked for the data yet.
+  - `Loading` - We've asked, but haven't got an answer yet.
+  - `Failure` - We asked, but something went wrong. Here's the error.
+  - `Success` - Everything worked, and here's the data.
+
 -}
 type RemoteData e a
     = NotAsked
@@ -203,6 +200,7 @@ map2 f a b =
 result will succeed when (and if) all three sources succeed.
 
 If you need `map4`, `map5`, etc, see the documentation for `andMap`.
+
 -}
 map3 :
     (a -> b -> c -> d)
@@ -303,12 +301,13 @@ fromResult result =
 {-| Convenience function for dispatching `Http.Request`s. It's like
 `Http.send`, but yields a `WebData` response.
 
-``` elm
+```elm
 getNews : Cmd Msg
 getNews =
     Http.get "/news" decodeNews
         |> RemoteData.sendRequest
 ```
+
 -}
 sendRequest : Http.Request a -> Cmd (WebData a)
 sendRequest =
@@ -328,6 +327,7 @@ they were one.
 If either value is `NotAsked`, the result is `NotAsked`.
 If either value is `Loading`, the result is `Loading`.
 If both values are `Failure`, the left one wins.
+
 -}
 append :
     RemoteData e a
@@ -343,7 +343,7 @@ append a b =
 For example, if you were fetching three datasets, `a`, `b` and `c`,
 and wanted to end up with a tuple of all three, you could say:
 
-``` elm
+```elm
 merge3 :
     RemoteData e a
     -> RemoteData e b
@@ -355,14 +355,14 @@ merge3 a b c =
         |> andMap c
 ```
 
-The final tuple succeeds only if all its children succeeded.  It is
-still `Loading` if _any_ of its children are still `Loading`. And if
+The final tuple succeeds only if all its children succeeded. It is
+still `Loading` if *any* of its children are still `Loading`. And if
 any child fails, the error is the leftmost `Failure` value.
 
 Note that this provides a general pattern for `map2`, `map3`, ..,
 `mapN`. If you find yourself wanting `map4` or `map5`, just use:
 
-``` elm
+```elm
 foo f a b c d e =
     map f a
         |> andMap b
@@ -376,6 +376,7 @@ discussion, "Could you just add `map7`? Could you just add `map8`?
 Could you just...".
 
 Category theory points: This is `apply` with the arguments flipped.
+
 -}
 andMap : RemoteData e a -> RemoteData e (a -> b) -> RemoteData e b
 andMap wrappedValue wrappedFunction =
@@ -405,6 +406,7 @@ andMap wrappedValue wrappedFunction =
 {-| Lift an ordinary value into the realm of RemoteData.
 
 Category theory points: This is `pure`.
+
 -}
 succeed : a -> RemoteData e a
 succeed =
@@ -463,6 +465,7 @@ isNotAsked data =
 
 This is fairly low-level. Most people will use `sendRequest` instead
 and stay above `Task`s entirely.
+
 -}
 fromTask : Task e a -> Task x (RemoteData e a)
 fromTask =
@@ -482,6 +485,23 @@ returned from the server.
 This function makes it more convenient to reach inside a
 `RemoteData.Success` value and apply an update. If the data is not
 `Success a`, it is returned unchanged with a `Cmd.none`.
+
+```elm
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+      EnabledChanged isEnabled ->
+        let
+          ( settings, cmd ) =
+            RemoteData.update (updateEnabledSetting isEnabled) model.settings
+        in
+          ( { model | settings = settings }, cmd )
+
+
+updateEnabledSetting : Bool -> Settings -> ( Settings, Cmd msg )
+updateEnabledSetting isEnabled settings =
+  ( { settings | isEnabled = isEnabled }, Cmd.none )
+```
 
 -}
 update : (a -> ( b, Cmd c )) -> RemoteData e a -> ( RemoteData e b, Cmd c )
@@ -510,11 +530,12 @@ If you use Monocle, you'll want this, otherwise you can ignore it.
 
 The type signature is actually:
 
-``` elm
+```elm
 prism : Prism (RemoteData e a) a
 ```
 
 ...but we use the more verbose type here to avoid introducing a dependency on Monocle.
+
 -}
 prism :
     { getOption : RemoteData e a -> Maybe a
