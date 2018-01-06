@@ -11,6 +11,7 @@ tests =
         , andMapTests
         , mapBothTests
         , prismTests
+        , fromListTests
         ]
 
 
@@ -64,4 +65,17 @@ andMapTests =
             [ assertEqual (andMap (Success 5) (Success ((*) 2))) (Success 10)
             , assertEqual (andMap (Failure "nope") Loading) (Failure "nope")
             , assertEqual (andMap Loading (Failure "nope")) (Failure "nope")
+            ]
+
+fromListTests : Test
+fromListTests =
+    suite "fromList" <|
+        List.map defaultTest
+            [ assertEqual (fromList []) (Success [])
+            , assertEqual (fromList [Success 1]) (Success [1])
+            , assertEqual (fromList [Success 1, Success 2]) (Success [1, 2])
+            , assertEqual (fromList [NotAsked, Loading]) (Loading)
+            , assertEqual (fromList [Success 1, Loading]) (Loading)
+            , assertEqual (fromList [Success 1, Loading, Failure "nope"]) (Failure "nope")
+            , assertEqual (fromList [Success 1, Failure "nah", Success 2, Failure "nope"]) (Failure "nah")
             ]

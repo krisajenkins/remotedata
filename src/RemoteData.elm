@@ -13,6 +13,7 @@ module RemoteData
         , map2
         , map3
         , andMap
+        , fromList
         , succeed
         , isSuccess
         , isFailure
@@ -128,6 +129,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs toMaybe
 @docs asCmd
 @docs append
+@docs fromList
 @docs isSuccess
 @docs isFailure
 @docs isLoading
@@ -401,6 +403,13 @@ andMap wrappedValue wrappedFunction =
 
         ( _, NotAsked ) ->
             NotAsked
+
+
+{-| Convert a list of RemoteData to a RemoteData of a list.
+-}
+fromList : List (RemoteData e a) -> RemoteData e (List a)
+fromList =
+    List.foldr (map2 (::)) <| Success []
 
 
 {-| Lift an ordinary value into the realm of RemoteData.
