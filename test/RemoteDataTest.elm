@@ -12,6 +12,7 @@ tests =
         , mapBothTests
         , prismTests
         , fromListTests
+        , fromMaybeTests
         ]
 
 
@@ -78,4 +79,15 @@ fromListTests =
             , assertEqual (fromList [Success 1, Loading]) (Loading)
             , assertEqual (fromList [Success 1, Loading, Failure "nope"]) (Failure "nope")
             , assertEqual (fromList [Success 1, Failure "nah", Success 2, Failure "nope"]) (Failure "nah")
+            ]
+
+
+fromMaybeTests : Test
+fromMaybeTests =
+    suite "fromMaybe" <|
+        List.map defaultTest
+            [ assertEqual (fromMaybe "Should be 1" (Just 1)) (Success 1)
+            , assertEqual (fromMaybe "Should be 1" Nothing) (Failure "Should be 1")
+            , assertEqual (fromMaybe "fail" (Just [ 1, 2, 3 ])) (Success [ 1, 2, 3 ])
+            , assertEqual (fromMaybe "fail" Nothing) (Failure "fail")
             ]

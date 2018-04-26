@@ -3,6 +3,7 @@ module RemoteData
         ( RemoteData(..)
         , WebData
         , sendRequest
+        , fromMaybe
         , fromResult
         , toMaybe
         , andThen
@@ -125,6 +126,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs andThen
 @docs withDefault
 @docs sendRequest
+@docs fromMaybe
 @docs fromResult
 @docs toMaybe
 @docs asCmd
@@ -286,6 +288,18 @@ withDefault default data =
 asCmd : Task e a -> Cmd (RemoteData e a)
 asCmd =
     Task.attempt fromResult
+
+
+{-| Convert a `Maybe a` to a RemoteData value.
+-}
+fromMaybe : e -> Maybe a -> RemoteData e a
+fromMaybe error maybe =
+    case maybe of
+        Nothing ->
+            Failure error
+
+        Just x ->
+            Success x
 
 
 {-| Convert a `Result Error`, probably produced from elm-http, to a RemoteData value.
