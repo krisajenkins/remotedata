@@ -335,9 +335,9 @@ append :
     RemoteData e a
     -> RemoteData e b
     -> RemoteData e ( a, b )
-append a b =
-    map (\a b -> ( a, b )) a
-        |> andMap b
+append ra rb =
+    map (\a b -> ( a, b )) ra
+        |> andMap rb
 
 
 {-| Put the results of two RemoteData calls together.
