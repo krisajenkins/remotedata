@@ -2,29 +2,29 @@ module RemoteData
     exposing
         ( RemoteData(..)
         , WebData
-        , sendRequest
+        , andMap
+        , andThen
+        , append
+        , asCmd
+        , fromList
         , fromMaybe
         , fromResult
-        , toMaybe
-        , andThen
-        , withDefault
-        , asCmd
-        , append
-        , map
-        , map2
-        , map3
-        , andMap
-        , fromList
-        , succeed
-        , isSuccess
+        , fromTask
         , isFailure
         , isLoading
         , isNotAsked
-        , mapError
+        , isSuccess
+        , map
+        , map2
+        , map3
         , mapBoth
-        , fromTask
-        , update
+        , mapError
         , prism
+        , sendRequest
+        , succeed
+        , toMaybe
+        , update
+        , withDefault
         )
 
 {-| A datatype representing fetched data.
@@ -41,48 +41,38 @@ To use the datatype, let's look at an example that loads `News` from a feed.
 
 First you add to your model, wrapping the data you want in `WebData`:
 
-```elm
-type alias Model =
-    { news : WebData News }
-```
+    type alias Model =
+        { news : WebData News }
 
 Then add in a message that will deliver the response:
 
-```elm
-type Msg
-    = NewsResponse (WebData News)
-```
+    type Msg
+        = NewsResponse (WebData News)
 
 Now we can create an HTTP get:
 
-```elm
-getNews : Cmd Msg
-getNews =
-    Http.get "/news" decodeNews
-        |> RemoteData.sendRequest
-        |> Cmd.map NewsResponse
-```
+    getNews : Cmd Msg
+    getNews =
+        Http.get "/news" decodeNews
+            |> RemoteData.sendRequest
+            |> Cmd.map NewsResponse
 
 We trigger it in our `init` function:
 
-```elm
-init : ( Model, Cmd Msg )
-init =
-    ( { news = Loading }
-    , getNews
-    )
-```
+    init : ( Model, Cmd Msg )
+    init =
+        ( { news = Loading }
+        , getNews
+        )
 
 We handle it in our `update` function:
 
-```elm
-update msg model =
-    case msg of
-        NewsResponse response ->
-            ( { model | news = response }
-            , Cmd.none
-            )
-```
+    update msg model =
+        case msg of
+            NewsResponse response ->
+                ( { model | news = response }
+                , Cmd.none
+                )
 
 Most of this you'd already have in your app, and the changes are just
 wrapping the datatype in `Webdata`, and replacing the `Http.send` call
@@ -91,25 +81,23 @@ with `RemoteData.sendRequest`.
 Now we get to where we really want to be, rendering the data and
 handling the different states in the UI gracefully:
 
-```elm
-view : Model -> Html msg
-view model =
-  case model.news of
-    NotAsked -> text "Initialising."
+    view : Model -> Html msg
+    view model =
+      case model.news of
+        NotAsked -> text "Initialising."
 
-    Loading -> text "Loading."
+        Loading -> text "Loading."
 
-    Failure err -> text ("Error: " ++ toString err)
+        Failure err -> text ("Error: " ++ toString err)
 
-    Success news -> viewNews news
+        Success news -> viewNews news
 
 
-viewNews : News -> Html msg
-viewNews news =
-    div []
-        [h1 [] [text "Here is the news."]
-        , ...]
-```
+    viewNews : News -> Html msg
+    viewNews news =
+        div []
+            [h1 [] [text "Here is the news."]
+            , ...]
 
 And that's it. A more accurate model of what's happening leads to a better UI.
 
@@ -317,12 +305,10 @@ fromResult result =
 {-| Convenience function for dispatching `Http.Request`s. It's like
 `Http.send`, but yields a `WebData` response.
 
-```elm
-getNews : Cmd Msg
-getNews =
-    Http.get "/news" decodeNews
-        |> RemoteData.sendRequest
-```
+    getNews : Cmd Msg
+    getNews =
+        Http.get "/news" decodeNews
+            |> RemoteData.sendRequest
 
 -}
 sendRequest : Http.Request a -> Cmd (WebData a)
@@ -350,7 +336,7 @@ append :
     -> RemoteData e b
     -> RemoteData e ( a, b )
 append a b =
-    map (,) a
+    map (\a b -> ( a, b )) a
         |> andMap b
 
 
@@ -359,33 +345,29 @@ append a b =
 For example, if you were fetching three datasets, `a`, `b` and `c`,
 and wanted to end up with a tuple of all three, you could say:
 
-```elm
-merge3 :
-    RemoteData e a
-    -> RemoteData e b
-    -> RemoteData e c
-    -> RemoteData e ( a, b, c )
-merge3 a b c =
-    map (,,) a
-        |> andMap b
-        |> andMap c
-```
+    merge3 :
+        RemoteData e a
+        -> RemoteData e b
+        -> RemoteData e c
+        -> RemoteData e ( a, b, c )
+    merge3 a b c =
+        map (\a b c -> ( a, b, c )) a
+            |> andMap b
+            |> andMap c
 
 The final tuple succeeds only if all its children succeeded. It is
-still `Loading` if *any* of its children are still `Loading`. And if
+still `Loading` if _any_ of its children are still `Loading`. And if
 any child fails, the error is the leftmost `Failure` value.
 
 Note that this provides a general pattern for `map2`, `map3`, ..,
 `mapN`. If you find yourself wanting `map4` or `map5`, just use:
 
-```elm
-foo f a b c d e =
-    map f a
-        |> andMap b
-        |> andMap c
-        |> andMap d
-        |> andMap e
-```
+    foo f a b c d e =
+        map f a
+            |> andMap b
+            |> andMap c
+            |> andMap d
+            |> andMap e
 
 It's a general recipe that doesn't require us to ever have the
 discussion, "Could you just add `map7`? Could you just add `map8`?
@@ -509,22 +491,19 @@ This function makes it more convenient to reach inside a
 `RemoteData.Success` value and apply an update. If the data is not
 `Success a`, it is returned unchanged with a `Cmd.none`.
 
-```elm
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-      EnabledChanged isEnabled ->
-        let
-          ( settings, cmd ) =
-            RemoteData.update (updateEnabledSetting isEnabled) model.settings
-        in
-          ( { model | settings = settings }, cmd )
+    update : Msg -> Model -> ( Model, Cmd Msg )
+    update msg model =
+        case msg of
+            EnabledChanged isEnabled ->
+                let
+                    ( settings, cmd ) =
+                        RemoteData.update (updateEnabledSetting isEnabled) model.settings
+                in
+                ( { model | settings = settings }, cmd )
 
-
-updateEnabledSetting : Bool -> Settings -> ( Settings, Cmd msg )
-updateEnabledSetting isEnabled settings =
-  ( { settings | isEnabled = isEnabled }, Cmd.none )
-```
+    updateEnabledSetting : Bool -> Settings -> ( Settings, Cmd msg )
+    updateEnabledSetting isEnabled settings =
+        ( { settings | isEnabled = isEnabled }, Cmd.none )
 
 -}
 update : (a -> ( b, Cmd c )) -> RemoteData e a -> ( RemoteData e b, Cmd c )
@@ -535,7 +514,7 @@ update f remoteData =
                 ( first, second ) =
                     f data
             in
-                ( Success first, second )
+            ( Success first, second )
 
         NotAsked ->
             ( NotAsked, Cmd.none )
@@ -553,9 +532,7 @@ If you use Monocle, you'll want this, otherwise you can ignore it.
 
 The type signature is actually:
 
-```elm
-prism : Prism (RemoteData e a) a
-```
+    prism : Prism (RemoteData e a) a
 
 ...but we use the more verbose type here to avoid introducing a dependency on Monocle.
 
