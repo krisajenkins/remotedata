@@ -1,9 +1,16 @@
-module Main exposing (..)
+module Main exposing (main)
 
-import RemoteDataTest
-import Test exposing (Test)
+-- import Runner.Log
+-- import RemoteDataTest
+
+import Browser
+import Html
 
 
-all : Test
-all =
-    RemoteDataTest.all
+main : Program () () ()
+main =
+    -- let
+    --     _ =
+    --         Runner.Log.run RemoteDataTest.all
+    -- in
+    Browser.staticPage (Html.text "")
