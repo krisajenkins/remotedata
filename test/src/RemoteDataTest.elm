@@ -2,7 +2,7 @@ module RemoteDataTest exposing (all)
 
 import Expect
 import RemoteData exposing (..)
-import Test exposing (describe, test)
+import Test exposing (Test, describe, test)
 
 
 all : Test
@@ -132,10 +132,25 @@ fromMaybeTests =
                 \_ ->
                     Expect.equal expected output
     in
-    describe "fromMaybe" <|
-        List.map check
-            [ ( "Just to Success 1", fromMaybe "Should be 1" (Just 1), Success 1 )
-            , ( "Nothing to Failure 1", fromMaybe "Should be 1" Nothing, Failure "Should be 1" )
-            , ( "Just to Success 2", fromMaybe "fail" (Just [ 1, 2, 3 ]), Success [ 1, 2, 3 ] )
-            , ( "Nothing to Failure 2", fromMaybe "fail" Nothing, Failure "fail" )
-            ]
+    describe "fromMaybe"
+        [ check
+            ( "Just to Success 1"
+            , fromMaybe "Should be 1" (Just 1)
+            , Success 1
+            )
+        , check
+            ( "Nothing to Failure 1"
+            , fromMaybe "Should be 1" Nothing
+            , Failure "Should be 1"
+            )
+        , check
+            ( "Just to Success 2"
+            , fromMaybe "fail" (Just [ 1, 2, 3 ])
+            , Success [ 1, 2, 3 ]
+            )
+        , check
+            ( "Nothing to Failure 2"
+            , fromMaybe "fail" Nothing
+            , Failure "fail"
+            )
+        ]
