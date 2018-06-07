@@ -1,7 +1,11 @@
 language: node_js
 node_js:
-  - "0.12"
+  - "7"
 install:
-  - npm install -g elm elm-test
+  - npm install -g elm-test@beta
+before_script:
+  - wget https://44a95588fe4cc47efd96-ec3c2a753a12d2be9f23ba16873acc23.ssl.cf2.rackcdn.com/linux-64.tar.gz -O /tmp/elm.tar.gz
+  - tar -xvf /tmp/elm.tar.gz
+  - export PATH=$PATH:$PWD
 script:
-  - make
+  - elm-test
