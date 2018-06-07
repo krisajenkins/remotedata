@@ -1,12 +1,12 @@
-module RemoteDataTest exposing (all)
+module RemoteDataTest exposing (suite)
 
 import Expect
 import RemoteData exposing (..)
 import Test exposing (Test, describe, test)
 
 
-all : Test
-all =
+suite : Test
+suite =
     describe "The RemoteData module"
         [ mapTests
         , andMapTests
