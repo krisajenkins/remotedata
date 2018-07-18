@@ -8,6 +8,8 @@ module RemoteData
         , toMaybe
         , andThen
         , withDefault
+        , unwrap
+        , unpack
         , asCmd
         , append
         , map
@@ -126,6 +128,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs andThen
 @docs withDefault
 @docs unwrap
+@docs unpack
 @docs sendRequest
 @docs fromMaybe
 @docs fromResult
