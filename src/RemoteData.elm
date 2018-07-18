@@ -125,6 +125,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs fromTask
 @docs andThen
 @docs withDefault
+@docs unwrap
 @docs sendRequest
 @docs fromMaybe
 @docs fromResult
@@ -281,6 +282,20 @@ withDefault default data =
 
         _ ->
             default
+            
+
+{-| `map` with a default value if not `Success`. This is a convenience for `map >> withDefault`.
+-}
+unwrap : b -> (a -> b) -> RemoteData e a -> b
+unwrap default =
+    map >> withDefault default
+
+
+{-| Like `unwrap` but the default value is evaluated lazily.
+-}
+unpack : (() -> b) -> (a -> b) -> RemoteData e a -> b
+unpack defaultFunction =
+    map >> withDefault (defaultFunction ())
 
 
 {-| Convert a web `Task`, probably produced from elm-http, to a `Cmd (RemoteData e a)`.
