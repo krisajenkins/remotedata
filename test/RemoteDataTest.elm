@@ -10,6 +10,8 @@ tests =
         [ mapTests
         , andMapTests
         , mapBothTests
+        , unwrapTests
+        , unpackTests
         , prismTests
         , fromListTests
         , fromMaybeTests
@@ -47,6 +49,40 @@ mapBothTests =
                 , ( NotAsked, NotAsked )
                 , ( Loading, Loading )
                 , ( Failure "", Failure "error" )
+                ]
+
+
+unwrapTests : Test
+unwrapTests =
+    let
+        check ( input, output ) =
+            assertEqual output
+                (unwrap 7 ((*) 3) input)
+    in
+    suite "unwrap" <|
+        List.map defaultTest <|
+            List.map check
+                [ ( Success 2, 6 )
+                , ( NotAsked, 7 )
+                , ( Loading, 7 )
+                , ( Failure "error", 7 )
+                ]
+
+
+unpackTests : Test
+unpackTests =
+    let
+        check ( input, output ) =
+            assertEqual output
+                (unpack (always 7) ((*) 3) input)
+    in
+    suite "unwrap" <|
+        List.map defaultTest <|
+            List.map check
+                [ ( Success 2, 6 )
+                , ( NotAsked, 7 )
+                , ( Loading, 7 )
+                , ( Failure "error", 7 )
                 ]
 
 

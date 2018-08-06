@@ -287,18 +287,31 @@ withDefault default data =
             default
             
 
-{-| `map` with a default value if not `Success`. This is a convenience for `map >> withDefault`.
+{-| Take a default value, a function and a `RemoteData`.
+Return the default value if the `RemoteData` is something other than `Success a`.
+If the `RemoteData` is `Success a`, apply the function on `a` and return the `b`.
+
+That is, `unwrap d f` is equivalent to `RemoteData.map f >> RemoteData.withDefault d`.
 -}
 unwrap : b -> (a -> b) -> RemoteData e a -> b
-unwrap default =
-    map >> withDefault default
+unwrap default function remoteData =
+    case remoteData of
+        Success data ->
+            function data
+        _ ->
+            default
 
 
-{-| Like `unwrap` but the default value is evaluated lazily.
+{-| A version of `unwrap` that is non-strict in the default value (by
+having it passed in a thunk).
 -}
 unpack : (() -> b) -> (a -> b) -> RemoteData e a -> b
-unpack defaultFunction =
-    map >> withDefault (defaultFunction ())
+unpack defaultFunction function remoteData =
+    case remoteData of
+        Success data ->
+            function data
+        _ ->
+            defaultFunction ()
 
 
 {-| Convert a web `Task`, probably produced from elm-http, to a `Cmd (RemoteData e a)`.
