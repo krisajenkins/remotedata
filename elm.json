@@ -13,5 +13,7 @@
         "elm/http": "1.0.0 <= v < 2.0.0",
         "elm/json": "1.0.0 <= v < 2.0.0"
     },
-    "test-dependencies": {}
+    "test-dependencies": {
+      "elm-explorations/test": "1.0.0 <= v < 2.0.0"
+    }
 }
