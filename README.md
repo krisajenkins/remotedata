@@ -8,11 +8,11 @@ of what this package does and why it exists, [read this post](http://blog.jenkst
 
 ## Installation
 
-From your top-level directory - the one with `elm-package.json` in - call:
+From your top-level directory - the one with `elm.json` in - call:
 
 ```
 
-$ elm package install krisajenkins/remotedata
+$ elm install krisajenkins/remotedata
 ```
 
 ## Documentation
@@ -22,10 +22,13 @@ $ elm package install krisajenkins/remotedata
 ## Building & Testing
 
 ```
-make
+elm make
 ```
 
-...will run the whole build and test suite.
+...will run the whole build.
+
+Note: Since Elm 0.19 the test suite does not run, pending an update
+for `elm-test`.
 
 ## License
 
