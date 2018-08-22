@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.0.0
+
+Changes inline with the Elm 0.19 release.
+RemoteData.Infix removed. Elm 0.19 has no custom infix operators.
+Added `unwrap` and `unpack`.
+
 ## 4.0.0
 
 Changes inline with the Elm 0.18 release.
