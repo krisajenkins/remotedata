@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Main exposing (main, tests)
 
 import Legacy.ElmTest exposing (..)
 import RemoteDataTest

@@ -1,3 +1,35 @@
+<<<<<<< HEAD
+module RemoteData
+    exposing
+        ( RemoteData(..)
+        , WebData
+        , sendRequest
+        , fromMaybe
+        , fromResult
+        , toMaybe
+        , andThen
+        , withDefault
+        , unwrap
+        , unpack
+        , asCmd
+        , append
+        , map
+        , map2
+        , map3
+        , andMap
+        , fromList
+        , succeed
+        , isSuccess
+        , isFailure
+        , isLoading
+        , isNotAsked
+        , mapError
+        , mapBoth
+        , fromTask
+        , update
+        , prism
+        )
+=======
 module RemoteData exposing
     ( RemoteData(..)
     , WebData
@@ -11,8 +43,6 @@ module RemoteData exposing
     , fromTask
     , andThen
     , withDefault
-    , unwrap
-    , unpack
     , sendRequest
     , fromMaybe
     , fromResult
@@ -27,6 +57,7 @@ module RemoteData exposing
     , update
     , prism
     )
+>>>>>>> master
 
 {-| A datatype representing fetched data.
 
@@ -272,21 +303,19 @@ withDefault default data =
 
         _ ->
             default
-
+            
 
 {-| Take a default value, a function and a `RemoteData`.
 Return the default value if the `RemoteData` is something other than `Success a`.
 If the `RemoteData` is `Success a`, apply the function on `a` and return the `b`.
 
 That is, `unwrap d f` is equivalent to `RemoteData.map f >> RemoteData.withDefault d`.
-
 -}
 unwrap : b -> (a -> b) -> RemoteData e a -> b
 unwrap default function remoteData =
     case remoteData of
         Success data ->
             function data
-
         _ ->
             default
 
@@ -299,7 +328,6 @@ unpack defaultFunction function remoteData =
     case remoteData of
         Success data ->
             function data
-
         _ ->
             defaultFunction ()
 
@@ -368,9 +396,9 @@ append :
     RemoteData e a
     -> RemoteData e b
     -> RemoteData e ( a, b )
-append a b =
-    map (,) a
-        |> andMap b
+append ra rb =
+    map (\a b -> ( a, b )) ra
+        |> andMap rb
 
 
 {-| Put the results of two RemoteData calls together.
@@ -384,7 +412,7 @@ and wanted to end up with a tuple of all three, you could say:
         -> RemoteData e c
         -> RemoteData e ( a, b, c )
     merge3 a b c =
-        map (,,) a
+        map (\a b c -> ( a, b, c )) a
             |> andMap b
             |> andMap c
 
