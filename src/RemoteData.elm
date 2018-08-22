@@ -1,31 +1,30 @@
-module RemoteData
-    exposing
-        ( RemoteData(..)
-        , WebData
-        , andMap
-        , andThen
-        , append
-        , asCmd
-        , fromList
-        , fromMaybe
-        , fromResult
-        , fromTask
-        , isFailure
-        , isLoading
-        , isNotAsked
-        , isSuccess
-        , map
-        , map2
-        , map3
-        , mapBoth
-        , mapError
-        , prism
-        , sendRequest
-        , succeed
-        , toMaybe
-        , update
-        , withDefault
-        )
+module RemoteData exposing
+    ( RemoteData(..)
+    , WebData
+    , map
+    , map2
+    , map3
+    , andMap
+    , succeed
+    , mapError
+    , mapBoth
+    , fromTask
+    , andThen
+    , withDefault
+    , sendRequest
+    , fromMaybe
+    , fromResult
+    , toMaybe
+    , asCmd
+    , append
+    , fromList
+    , isSuccess
+    , isFailure
+    , isLoading
+    , isNotAsked
+    , update
+    , prism
+    )
 
 {-| A datatype representing fetched data.
 
