@@ -368,9 +368,9 @@ append :
     RemoteData e a
     -> RemoteData e b
     -> RemoteData e ( a, b )
-append a b =
-    map (,) a
-        |> andMap b
+append ra rb =
+    map (\a b -> ( a, b )) ra
+        |> andMap rb
 
 
 {-| Put the results of two RemoteData calls together.
@@ -384,7 +384,7 @@ and wanted to end up with a tuple of all three, you could say:
         -> RemoteData e c
         -> RemoteData e ( a, b, c )
     merge3 a b c =
-        map (,,) a
+        map (\a b c -> ( a, b, c )) a
             |> andMap b
             |> andMap c
 

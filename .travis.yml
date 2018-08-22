@@ -1,7 +1,9 @@
 language: node_js
 node_js:
-  - "0.12"
+  - "10"
 install:
-  - npm install -g elm elm-test
+  - npm install -g yarn
+  - yarn
 script:
-  - make
+  - yarn run elm make
+  - yarn run elm-test
