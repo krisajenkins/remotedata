@@ -22,13 +22,12 @@ $ elm install krisajenkins/remotedata
 ## Building & Testing
 
 ```
-elm make
+yarn
+yarn run elm make
+yarn run elm-test
 ```
 
 ...will run the whole build.
-
-Note: Since Elm 0.19 the test suite does not run, pending an update
-for `elm-test`.
 
 ## License
 
