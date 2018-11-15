@@ -13,7 +13,6 @@ module RemoteData exposing
     , withDefault
     , unwrap
     , unpack
-    , sendRequest
     , fromMaybe
     , fromResult
     , toMaybe
@@ -333,20 +332,6 @@ fromResult result =
 
         Ok x ->
             Success x
-
-
-{-| Convenience function for dispatching `Http.Request`s. It's like
-`Http.send`, but yields a `WebData` response.
-
-    getNews : Cmd Msg
-    getNews =
-        Http.get "/news" decodeNews
-            |> RemoteData.sendRequest
-
--}
-sendRequest : Http.Request a -> Cmd (WebData a)
-sendRequest =
-    Http.send fromResult
 
 
 {-| Convert a `RemoteData e a` to a `Maybe a`

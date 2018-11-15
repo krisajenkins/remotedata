@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.0.0
+Updates the underlying elm/http and elm/json package dependencies.
+Because [the new `elm/http` package](https://package.elm-lang.org/packages/elm/http/2.0.0/Http)
+changed the API for sending HTTP requests (there is no longer an `Http.Request` type),
+`RemoteData.sendRequest` was removed.
+
 ## 5.0.0
 
 Changes inline with the Elm 0.19 release.
