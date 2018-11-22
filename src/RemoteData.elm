@@ -321,7 +321,7 @@ fromMaybe error maybe =
             Success x
 
 
-{-| Convert a `Result Error`, probably produced from elm-http, to a RemoteData value.
+{-| Convert a `Result`, probably produced from elm-http, to a RemoteData value.
 -}
 fromResult : Result e a -> RemoteData e a
 fromResult result =
