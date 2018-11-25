@@ -13,7 +13,6 @@ module RemoteData exposing
     , withDefault
     , unwrap
     , unpack
-    , sendRequest
     , fromMaybe
     , fromResult
     , toMaybe
@@ -54,8 +53,8 @@ Now we can create an HTTP get:
 
     getNews : Cmd Msg
     getNews =
-        Http.get "/news" decodeNews
-            |> RemoteData.sendRequest
+        Http.get { url = "/news", expect = expectJson decodeNews }
+            |> RemoteData.fromResult
             |> Cmd.map NewsResponse
 
 We trigger it in our `init` function:
@@ -76,8 +75,8 @@ We handle it in our `update` function:
                 )
 
 Most of this you'd already have in your app, and the changes are just
-wrapping the datatype in `Webdata`, and replacing the `Http.send` call
-with `RemoteData.sendRequest`.
+wrapping the datatype in `Webdata`, and converting the Result from
+`Http.get`/`Http.post`/`Http.request` to RemoteData with `RemoteData.fromResult`.
 
 Now we get to where we really want to be, rendering the data and
 handling the different states in the UI gracefully:
@@ -116,7 +115,6 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs withDefault
 @docs unwrap
 @docs unpack
-@docs sendRequest
 @docs fromMaybe
 @docs fromResult
 @docs toMaybe
@@ -323,7 +321,7 @@ fromMaybe error maybe =
             Success x
 
 
-{-| Convert a `Result Error`, probably produced from elm-http, to a RemoteData value.
+{-| Convert a `Result`, probably produced from elm-http, to a RemoteData value.
 -}
 fromResult : Result e a -> RemoteData e a
 fromResult result =
@@ -333,20 +331,6 @@ fromResult result =
 
         Ok x ->
             Success x
-
-
-{-| Convenience function for dispatching `Http.Request`s. It's like
-`Http.send`, but yields a `WebData` response.
-
-    getNews : Cmd Msg
-    getNews =
-        Http.get "/news" decodeNews
-            |> RemoteData.sendRequest
-
--}
-sendRequest : Http.Request a -> Cmd (WebData a)
-sendRequest =
-    Http.send fromResult
 
 
 {-| Convert a `RemoteData e a` to a `Maybe a`
@@ -500,10 +484,6 @@ isNotAsked data =
 
 
 {-| Convert a task to RemoteData.
-
-This is fairly low-level. Most people will use `sendRequest` instead
-and stay above `Task`s entirely.
-
 -}
 fromTask : Task e a -> Task x (RemoteData e a)
 fromTask =
