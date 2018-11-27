@@ -53,9 +53,10 @@ Now we can create an HTTP get:
 
     getNews : Cmd Msg
     getNews =
-        Http.get { url = "/news", expect = expectJson decodeNews }
-            |> RemoteData.fromResult
-            |> Cmd.map NewsResponse
+        Http.get
+            { url = "/news"
+            , expect = expectJson (RemoteData.fromResult >> NewsResponse) decodeNews
+            }
 
 We trigger it in our `init` function:
 
