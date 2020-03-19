@@ -1,11 +1,10 @@
 module RemoteData exposing
     ( RemoteData(..)
     , WebData
-    , map
-    , map2
-    , map3
+    , init
+    , map, map2, map3
     , andMap
-    , succeed
+    , succeed, fail, loading
     , mapError
     , mapBoth
     , fromTask
@@ -13,6 +12,7 @@ module RemoteData exposing
     , withDefault
     , unwrap
     , unpack
+    , fromValue
     , fromMaybe
     , fromResult
     , toMaybe
@@ -25,6 +25,7 @@ module RemoteData exposing
     , isNotAsked
     , update
     , prism
+    , getData, getError
     )
 
 {-| A datatype representing fetched data.
@@ -104,11 +105,10 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 
 @docs RemoteData
 @docs WebData
-@docs map
-@docs map2
-@docs map3
+@docs init
+@docs map, map2, map3
 @docs andMap
-@docs succeed
+@docs init, succeed, fail, loading
 @docs mapError
 @docs mapBoth
 @docs fromTask
@@ -116,6 +116,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs withDefault
 @docs unwrap
 @docs unpack
+@docs fromValue
 @docs fromMaybe
 @docs fromResult
 @docs toMaybe
@@ -132,22 +133,20 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 -}
 
 import Http
+import RemoteData.Data as Data exposing (Data(..))
 import Task exposing (Task)
 
 
-{-| Frequently when you're fetching data from an API, you want to represent four different states:
+{-| The data is either loading or not. In both cases we have the latest data state
 
-  - `NotAsked` - We haven't asked for the data yet.
   - `Loading` - We've asked, but haven't got an answer yet.
-  - `Failure` - We asked, but something went wrong. Here's the error.
-  - `Success` - Everything worked, and here's the data.
+    The former data state is still accessible.
+  - `Final` - No loading operation is ongoing, here is the current data state.
 
 -}
 type RemoteData e a
-    = NotAsked
-    | Loading
-    | Failure e
-    | Success a
+    = Loading (Data e a)
+    | Final (Data e a)
 
 
 {-| While `RemoteData` can model any type of error, the most common
@@ -159,22 +158,21 @@ type alias WebData a =
     RemoteData Http.Error a
 
 
-{-| Map a function into the `Success` value.
+init : RemoteData e a
+init =
+    Final NoData
+
+
+{-| Map a function into the `Success` or former success value.
 -}
 map : (a -> b) -> RemoteData e a -> RemoteData e b
-map f data =
-    case data of
-        Success value ->
-            Success (f value)
+map f remote =
+    case remote of
+        Loading data ->
+            Loading (Data.map f data)
 
-        Loading ->
-            Loading
-
-        NotAsked ->
-            NotAsked
-
-        Failure error ->
-            Failure error
+        Final data ->
+            Final (Data.map f data)
 
 
 {-| Combine two remote data sources with the given function. The
@@ -208,25 +206,27 @@ map3 f a b c =
         |> andMap c
 
 
+mapData :
+    (Data e a -> Data f b)
+    -> RemoteData e a
+    -> RemoteData f b
+mapData f remote =
+    case remote of
+        Final data ->
+            Final (f data)
+
+        Loading data ->
+            Loading (f data)
+
+
 {-| Map a function into the `Failure` value.
 -}
 mapError :
     (e -> f)
     -> RemoteData e a
     -> RemoteData f a
-mapError f data =
-    case data of
-        Success x ->
-            Success x
-
-        Failure e ->
-            Failure (f e)
-
-        Loading ->
-            Loading
-
-        NotAsked ->
-            NotAsked
+mapError f =
+    mapData (Data.mapError f)
 
 
 {-| Map function into both the `Success` and `Failure` value.
@@ -246,31 +246,53 @@ andThen :
     (a -> RemoteData e b)
     -> RemoteData e a
     -> RemoteData e b
-andThen f data =
-    case data of
-        Success a ->
-            f a
+andThen f remote =
+    case remote |> getData |> Data.toMaybe of
+        Just a ->
+            let
+                next =
+                    f a
+            in
+            if isLoading remote || isLoading next then
+                Loading (getData next)
 
-        Failure e ->
-            Failure e
+            else
+                Final (getData next)
 
-        NotAsked ->
-            NotAsked
+        Nothing ->
+            if isLoading remote then
+                Loading NoData
 
-        Loading ->
-            Loading
+            else
+                Final NoData
 
 
-{-| Return the `Success` value, or the default.
--}
-withDefault : a -> RemoteData e a -> a
-withDefault default data =
-    case data of
-        Success x ->
-            x
+getData : RemoteData e a -> Data e a
+getData remote =
+    case remote of
+        Loading d ->
+            d
+
+        Final d ->
+            d
+
+
+getError : RemoteData e a -> Maybe e
+getError remote =
+    case getData remote of
+        Failure err _ ->
+            Just err
 
         _ ->
-            default
+            Nothing
+
+
+{-| Return the current value, or the default.
+-}
+withDefault : a -> RemoteData e a -> a
+withDefault default =
+    getData
+        >> Data.withDefault default
 
 
 {-| Take a default value, a function and a `RemoteData`.
@@ -281,25 +303,20 @@ That is, `unwrap d f` is equivalent to `RemoteData.map f >> RemoteData.withDefau
 
 -}
 unwrap : b -> (a -> b) -> RemoteData e a -> b
-unwrap default function remoteData =
-    case remoteData of
-        Success data ->
-            function data
-
-        _ ->
-            default
+unwrap default function =
+    getData >> Data.map function >> Data.withDefault default
 
 
 {-| A version of `unwrap` that is non-strict in the default value (by
 having it passed in a thunk).
 -}
 unpack : (() -> b) -> (a -> b) -> RemoteData e a -> b
-unpack defaultFunction function remoteData =
-    case remoteData of
-        Success data ->
-            function data
+unpack defaultFunction function remote =
+    case remote |> getData |> Data.map function |> Data.toMaybe of
+        Just data ->
+            data
 
-        _ ->
+        Nothing ->
             defaultFunction ()
 
 
@@ -310,16 +327,21 @@ asCmd =
     Task.attempt fromResult
 
 
+fromValue : a -> RemoteData e a
+fromValue =
+    Final << Success
+
+
 {-| Convert a `Maybe a` to a RemoteData value.
 -}
 fromMaybe : e -> Maybe a -> RemoteData e a
 fromMaybe error maybe =
     case maybe of
         Nothing ->
-            Failure error
+            Final (Failure error Nothing)
 
         Just x ->
-            Success x
+            Final (Success x)
 
 
 {-| Convert a `Result`, probably produced from elm-http, to a RemoteData value.
@@ -328,10 +350,10 @@ fromResult : Result e a -> RemoteData e a
 fromResult result =
     case result of
         Err e ->
-            Failure e
+            Final (Failure e Nothing)
 
         Ok x ->
-            Success x
+            Final (Success x)
 
 
 {-| Convert a `RemoteData e a` to a `Maybe a`
@@ -397,33 +419,24 @@ Category theory points: This is `apply` with the arguments flipped.
 andMap : RemoteData e a -> RemoteData e (a -> b) -> RemoteData e b
 andMap wrappedValue wrappedFunction =
     case ( wrappedFunction, wrappedValue ) of
-        ( Success f, Success value ) ->
-            Success (f value)
+        ( Final f, Final value ) ->
+            Final (Data.andMap value f)
 
-        ( Failure error, _ ) ->
-            Failure error
+        ( Final f, Loading value ) ->
+            Loading (Data.andMap value f)
 
-        ( _, Failure error ) ->
-            Failure error
+        ( Loading f, Final value ) ->
+            Loading (Data.andMap value f)
 
-        ( Loading, _ ) ->
-            Loading
-
-        ( _, Loading ) ->
-            Loading
-
-        ( NotAsked, _ ) ->
-            NotAsked
-
-        ( _, NotAsked ) ->
-            NotAsked
+        ( Loading f, Loading value ) ->
+            Loading (Data.andMap value f)
 
 
 {-| Convert a list of RemoteData to a RemoteData of a list.
 -}
 fromList : List (RemoteData e a) -> RemoteData e (List a)
 fromList =
-    List.foldr (map2 (::)) <| Success []
+    List.foldr (map2 (::)) <| Final (Success [])
 
 
 {-| Lift an ordinary value into the realm of RemoteData.
@@ -433,7 +446,24 @@ Category theory points: This is `pure`.
 -}
 succeed : a -> RemoteData e a
 succeed =
-    Success
+    Final << Success
+
+
+fail : e -> RemoteData e a -> RemoteData e a
+fail error =
+    getData
+        >> Data.fail error
+        >> Final
+
+
+loading : RemoteData e a -> RemoteData e a
+loading remote =
+    case remote of
+        Final data ->
+            Loading data
+
+        Loading data ->
+            Loading data
 
 
 {-| State-checking predicate. Returns true if we've successfully loaded some data.
@@ -441,7 +471,7 @@ succeed =
 isSuccess : RemoteData e a -> Bool
 isSuccess data =
     case data of
-        Success _ ->
+        Final (Success _) ->
             True
 
         _ ->
@@ -453,7 +483,7 @@ isSuccess data =
 isFailure : RemoteData e a -> Bool
 isFailure data =
     case data of
-        Failure _ ->
+        Final (Failure _ _) ->
             True
 
         _ ->
@@ -465,7 +495,7 @@ isFailure data =
 isLoading : RemoteData e a -> Bool
 isLoading data =
     case data of
-        Loading ->
+        Loading _ ->
             True
 
         _ ->
@@ -475,9 +505,9 @@ isLoading data =
 {-| State-checking predicate. Returns true if we haven't asked for data yet.
 -}
 isNotAsked : RemoteData e a -> Bool
-isNotAsked data =
-    case data of
-        NotAsked ->
+isNotAsked remote =
+    case remote of
+        Final NoData ->
             True
 
         _ ->
@@ -488,8 +518,8 @@ isNotAsked data =
 -}
 fromTask : Task e a -> Task x (RemoteData e a)
 fromTask =
-    Task.map Success
-        >> Task.onError (Failure >> Task.succeed)
+    Task.map (Final << Success)
+        >> Task.onError (\e -> Final (Failure e Nothing) |> Task.succeed)
 
 
 {-| Apply an Elm update function - `Model -> (Model, Cmd Msg)` - to any `Successful`-ly loaded data.
@@ -505,39 +535,42 @@ This function makes it more convenient to reach inside a
 `RemoteData.Success` value and apply an update. If the data is not
 `Success a`, it is returned unchanged with a `Cmd.none`.
 
-    update : Msg -> Model -> ( Model, Cmd Msg )
-    update msg model =
-        case msg of
-            EnabledChanged isEnabled ->
-                let
-                    ( settings, cmd ) =
-                        RemoteData.update (updateEnabledSetting isEnabled) model.settings
-                in
-                ( { model | settings = settings }, cmd )
+       update : Msg -> Model -> ( Model, Cmd Msg )
+       update msg model =
+           case msg of
+               EnabledChanged isEnabled ->
+                   let
+                       ( settings, cmd ) =
+                           RemoteData.update (updateEnabledSetting isEnabled) model.settings
+                   in
+                   ( { model | settings = settings }, cmd )
 
-    updateEnabledSetting : Bool -> Settings -> ( Settings, Cmd msg )
-    updateEnabledSetting isEnabled settings =
-        ( { settings | isEnabled = isEnabled }, Cmd.none )
+       updateEnabledSetting : Bool -> Settings -> ( Settings, Cmd msg )
+       updateEnabledSetting isEnabled settings =
+           ( { settings | isEnabled = isEnabled }, Cmd.none )
 
 -}
 update : (a -> ( b, Cmd c )) -> RemoteData e a -> ( RemoteData e b, Cmd c )
 update f remoteData =
     case remoteData of
-        Success data ->
+        Final (Success data) ->
             let
                 ( first, second ) =
                     f data
             in
-            ( Success first, second )
+            ( Final (Success first), second )
 
-        NotAsked ->
-            ( NotAsked, Cmd.none )
+        Final NoData ->
+            ( Final NoData, Cmd.none )
 
-        Loading ->
-            ( Loading, Cmd.none )
+        Final (Failure error _) ->
+            ( Final (Failure error Nothing), Cmd.none )
 
-        Failure error ->
-            ( Failure error, Cmd.none )
+        Loading (Failure error _) ->
+            ( Loading (Failure error Nothing), Cmd.none )
+
+        Loading _ ->
+            ( Loading NoData, Cmd.none )
 
 
 {-| A monocle-compatible Prism.
@@ -556,13 +589,6 @@ prism :
     , reverseGet : a -> RemoteData e a
     }
 prism =
-    { reverseGet = Success
-    , getOption =
-        \data ->
-            case data of
-                Success value ->
-                    Just value
-
-                _ ->
-                    Nothing
+    { reverseGet = succeed
+    , getOption = getData >> Data.toMaybe
     }
