@@ -441,7 +441,7 @@ succeed =
 isSuccess : RemoteData e a -> Bool
 isSuccess data =
     case data of
-        Success x ->
+        Success _ ->
             True
 
         _ ->
@@ -453,7 +453,7 @@ isSuccess data =
 isFailure : RemoteData e a -> Bool
 isFailure data =
     case data of
-        Failure x ->
+        Failure _ ->
             True
 
         _ ->
