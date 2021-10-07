@@ -185,9 +185,13 @@ map2 :
     -> RemoteData e a
     -> RemoteData e b
     -> RemoteData e c
-map2 f a b =
-    map f a
-        |> andMap b
+map2 f remoteA remoteB =
+    remoteA
+        |> andThen
+            (\a ->
+                remoteB
+                    |> andThen (\b -> Success (f a b))
+            )
 
 
 {-| Combine three remote data sources with the given function. The
@@ -202,10 +206,17 @@ map3 :
     -> RemoteData e b
     -> RemoteData e c
     -> RemoteData e d
-map3 f a b c =
-    map f a
-        |> andMap b
-        |> andMap c
+map3 f remoteA remoteB remoteC =
+    remoteA
+        |> andThen
+            (\a ->
+                remoteB
+                    |> andThen
+                        (\b ->
+                            remoteC
+                                |> andThen (\c -> Success (f a b c))
+                        )
+            )
 
 
 {-| Map a function into the `Failure` value.
@@ -395,28 +406,8 @@ Category theory points: This is `apply` with the arguments flipped.
 
 -}
 andMap : RemoteData e a -> RemoteData e (a -> b) -> RemoteData e b
-andMap wrappedValue wrappedFunction =
-    case ( wrappedFunction, wrappedValue ) of
-        ( Success f, Success value ) ->
-            Success (f value)
-
-        ( Failure error, _ ) ->
-            Failure error
-
-        ( _, Failure error ) ->
-            Failure error
-
-        ( Loading, _ ) ->
-            Loading
-
-        ( _, Loading ) ->
-            Loading
-
-        ( NotAsked, _ ) ->
-            NotAsked
-
-        ( _, NotAsked ) ->
-            NotAsked
+andMap =
+    map2 (|>)
 
 
 {-| Convert a list of RemoteData to a RemoteData of a list.
@@ -441,7 +432,7 @@ succeed =
 isSuccess : RemoteData e a -> Bool
 isSuccess data =
     case data of
-        Success x ->
+        Success _ ->
             True
 
         _ ->
@@ -453,7 +444,7 @@ isSuccess data =
 isFailure : RemoteData e a -> Bool
 isFailure data =
     case data of
-        Failure x ->
+        Failure _ ->
             True
 
         _ ->
