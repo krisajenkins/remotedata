@@ -114,13 +114,13 @@ andMapTests =
               , andMap (Success 5) (Success ((*) 2))
               , Success 10
               )
-            , ( "Failure case 1"
+            , ( "Failure case"
               , andMap (Failure "nope") Loading
               , Failure "nope"
               )
-            , ( "Failure case 2"
+            , ( "Loading case"
               , andMap Loading (Failure "nope")
-              , Failure "nope"
+              , Loading
               )
             ]
 
@@ -144,19 +144,19 @@ fromListTests =
               , fromList [ Success 1, Success 2 ]
               , Success [ 1, 2 ]
               )
-            , ( "Loading from list with Loading and no Failure 1"
+            , ( "NotAsked from list with Loading and no Failure"
               , fromList [ NotAsked, Loading ]
-              , Loading
+              , NotAsked
               )
-            , ( "Loading from list with Loading and no Failure 2"
+            , ( "Loading from list with Loading and no Failure 1"
               , fromList [ Success 1, Loading ]
               , Loading
               )
-            , ( "Failure from list with Failure1"
+            , ( "Loading from list with Loading and no Failure 2"
               , fromList [ Success 1, Loading, Failure "nope" ]
-              , Failure "nope"
+              , Loading
               )
-            , ( "Failure from list with Failure 2"
+            , ( "Failure from list with Failure"
               , fromList [ Success 1, Failure "nah", Success 2, Failure "nope" ]
               , Failure "nah"
               )
