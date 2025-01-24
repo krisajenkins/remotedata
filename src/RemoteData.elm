@@ -16,6 +16,7 @@ module RemoteData exposing
     , fromMaybe
     , fromResult
     , toMaybe
+    , toResult
     , asCmd
     , append
     , fromList
@@ -119,6 +120,7 @@ And that's it. A more accurate model of what's happening leads to a better UI.
 @docs fromMaybe
 @docs fromResult
 @docs toMaybe
+@docs toResult
 @docs asCmd
 @docs append
 @docs fromList
@@ -339,6 +341,35 @@ fromResult result =
 toMaybe : RemoteData e a -> Maybe a
 toMaybe =
     map Just >> withDefault Nothing
+
+
+{-| Convert `RemoteData e a` to `Result e a`
+given the default error for `NotAsked` and `Loading` states.
+
+    toResult True NotAsked
+        => Err True
+
+    toResult True Loading
+        => Err True
+
+    toResult True Loading (Failure False)
+        => Err False
+
+    toResult True Loading (Success "it worked!")
+        => Ok "it worked!"
+
+-}
+toResult : e -> RemoteData e a -> Result e a
+toResult defaultError remoteData =
+    case remoteData of
+        Success a ->
+            Ok a
+
+        Failure e ->
+            Err e
+
+        _ ->
+            Err defaultError
 
 
 {-| Append - join two `RemoteData` values together as though
