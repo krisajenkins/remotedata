@@ -347,16 +347,16 @@ toMaybe =
 given the default error for `NotAsked` and `Loading` states.
 
     toResult True NotAsked
-        => Err True
+    --> Err True
 
     toResult True Loading
-        => Err True
+    --> Err True
 
     toResult True Loading (Failure False)
-        => Err False
+    --> Err False
 
     toResult True Loading (Success "it worked!")
-        => Ok "it worked!"
+    --> Ok "it worked!"
 
 -}
 toResult : e -> RemoteData e a -> Result e a
