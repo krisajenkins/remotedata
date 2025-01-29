@@ -209,6 +209,9 @@ map3 f a b c =
 
 
 {-| Map a function into the `Failure` value.
+
+Hipster points: This is the `first` function on a `Bifunctor`.
+
 -}
 mapError :
     (e -> f)
@@ -230,6 +233,9 @@ mapError f data =
 
 
 {-| Map function into both the `Success` and `Failure` value.
+
+Hipster points: This is `bimap`.
+
 -}
 mapBoth :
     (a -> b)
@@ -241,6 +247,9 @@ mapBoth successFn errorFn =
 
 
 {-| Chain together RemoteData function calls.
+
+Hipster points: This is `bind`.
+
 -}
 andThen :
     (a -> RemoteData e b)
@@ -391,7 +400,7 @@ It's a general recipe that doesn't require us to ever have the
 discussion, "Could you just add `map7`? Could you just add `map8`?
 Could you just...".
 
-Category theory points: This is `apply` with the arguments flipped.
+Hipster points: This is `apply` with the arguments flipped.
 
 -}
 andMap : RemoteData e a -> RemoteData e (a -> b) -> RemoteData e b
@@ -420,6 +429,9 @@ andMap wrappedValue wrappedFunction =
 
 
 {-| Convert a list of RemoteData to a RemoteData of a list.
+
+Hipster points: This is a specialisation of `sequence`.
+
 -}
 fromList : List (RemoteData e a) -> RemoteData e (List a)
 fromList =
@@ -428,7 +440,7 @@ fromList =
 
 {-| Lift an ordinary value into the realm of RemoteData.
 
-Category theory points: This is `pure`.
+Hipster points: This is `pure`.
 
 -}
 succeed : a -> RemoteData e a
