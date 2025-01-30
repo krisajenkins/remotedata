@@ -3,6 +3,7 @@ module RemoteDataTest exposing (suite)
 import Debug exposing (toString)
 import Expect
 import RemoteData exposing (..)
+import RemoteData.Data as Data exposing (Data(..))
 import Test exposing (Test, describe, test)
 
 
@@ -31,10 +32,9 @@ mapTests =
     in
     describe "map" <|
         List.map check
-            [ ( "Success", Success 2, Success 6 )
-            , ( "NotAsked", NotAsked, NotAsked )
-            , ( "Loading", Loading, Loading )
-            , ( "Failure", Failure "error", Failure "error" )
+            [ ( "Loading Success", Loading (Success 2), Loading (Success 6) )
+            , ( "Final NoData", Final NoData, Final NoData )
+            , ( "Loading Error w. data", Loading (Failure "error" (Just 2)), Loading (Failure "error" (Just 6)) )
             ]
 
 
@@ -49,10 +49,10 @@ mapBothTests =
     in
     describe "mapBoth" <|
         List.map check
-            [ ( "Success", Success 2, Success 6 )
-            , ( "NotAsked", NotAsked, NotAsked )
-            , ( "Loading", Loading, Loading )
-            , ( "Failure", Failure "", Failure "error" )
+            [ ( "Final Success", Final <| Success 2, Final <| Success 6 )
+            , ( "Loading NoData", Loading NoData, Loading NoData )
+            , ( "Final Failure w data", Final <| Failure "" (Just 2), Final <| Failure "error" (Just 6) )
+            , ( "Loading Failure w/o data", Loading <| Failure "" Nothing, Loading <| Failure "error" Nothing )
             ]
 
 
@@ -67,10 +67,10 @@ unwrapTests =
     in
     describe "unwrap" <|
         List.map check
-            [ ( Success 2, 6 )
-            , ( NotAsked, 7 )
-            , ( Loading, 7 )
-            , ( Failure "error", 7 )
+            [ ( Final <| Success 2, 6 )
+            , ( Final <| NoData, 7 )
+            , ( Loading <| Failure "error" (Just 2), 6 )
+            , ( Loading <| Failure "error" Nothing, 7 )
             ]
 
 
@@ -85,10 +85,10 @@ unpackTests =
     in
     describe "unpack" <|
         List.map check
-            [ ( Success 2, 6 )
-            , ( NotAsked, 7 )
-            , ( Loading, 7 )
-            , ( Failure "error", 7 )
+            [ ( Final <| Success 2, 6 )
+            , ( Final <| NoData, 7 )
+            , ( Loading <| Failure "error" (Just 2), 6 )
+            , ( Loading <| Failure "error" Nothing, 7 )
             ]
 
 
@@ -110,17 +110,25 @@ andMapTests =
     in
     describe "andMap" <|
         List.map check
-            [ ( "Success case"
-              , andMap (Success 5) (Success ((*) 2))
-              , Success 10
+            [ ( "Final Success case"
+              , andMap (Final <| Success 5) (Final <| Success ((*) 2))
+              , Final <| Success 10
+              )
+            , ( "Loading Success case 1"
+              , andMap (Final <| Success 5) (Loading <| Success ((*) 2))
+              , Loading <| Success 10
+              )
+            , ( "Loading Success case 2"
+              , andMap (Loading <| Success 5) (Final <| Success ((*) 2))
+              , Loading <| Success 10
               )
             , ( "Failure case 1"
-              , andMap (Failure "nope") Loading
-              , Failure "nope"
+              , andMap (Loading <| Failure "nope" Nothing) (Final <| Success ((*) 2))
+              , Loading <| Failure "nope" Nothing
               )
             , ( "Failure case 2"
-              , andMap Loading (Failure "nope")
-              , Failure "nope"
+              , andMap (Final <| Failure "nope" (Just 5)) (Loading <| Failure "doh" (Just ((*) 2)))
+              , Loading <| Failure "doh" (Just 10)
               )
             ]
 
@@ -135,30 +143,30 @@ fromListTests =
     in
     describe "fromList" <|
         List.map check
-            [ ( "Success from empty", fromList [], Success [] )
+            [ ( "Success from empty", fromList [], fromValue [] )
             , ( "Success from singleton"
-              , fromList [ Success 1 ]
-              , Success [ 1 ]
+              , fromList [ fromValue 1 ]
+              , fromValue [ 1 ]
               )
             , ( "Success from list with many values"
-              , fromList [ Success 1, Success 2 ]
-              , Success [ 1, 2 ]
+              , fromList [ fromValue 1, fromValue 2 ]
+              , fromValue [ 1, 2 ]
               )
             , ( "Loading from list with Loading and no Failure 1"
-              , fromList [ NotAsked, Loading ]
-              , Loading
+              , fromList [ Final NoData, Loading NoData ]
+              , Loading NoData
               )
             , ( "Loading from list with Loading and no Failure 2"
-              , fromList [ Success 1, Loading ]
-              , Loading
+              , fromList [ fromValue 1, Loading NoData ]
+              , Loading NoData
               )
             , ( "Failure from list with Failure1"
-              , fromList [ Success 1, Loading, Failure "nope" ]
-              , Failure "nope"
+              , fromList [ fromValue 1, Loading NoData, Final <| Failure "nope" Nothing ]
+              , Loading <| Failure "nope" Nothing
               )
             , ( "Failure from list with Failure 2"
-              , fromList [ Success 1, Failure "nah", Success 2, Failure "nope" ]
-              , Failure "nah"
+              , fromList [ fromValue 1, Final <| Failure "nah" (Just 4), fromValue 2, Final <| Failure "nope" Nothing ]
+              , Final <| Failure "nah" Nothing
               )
             ]
 
@@ -175,21 +183,21 @@ fromMaybeTests =
         [ check
             ( "Just to Success 1"
             , fromMaybe "Should be 1" (Just 1)
-            , Success 1
+            , fromValue 1
             )
         , check
             ( "Nothing to Failure 1"
             , fromMaybe "Should be 1" Nothing
-            , Failure "Should be 1"
+            , Final <| Failure "Should be 1" Nothing
             )
         , check
             ( "Just to Success 2"
             , fromMaybe "fail" (Just [ 1, 2, 3 ])
-            , Success [ 1, 2, 3 ]
+            , fromValue [ 1, 2, 3 ]
             )
         , check
             ( "Nothing to Failure 2"
             , fromMaybe "fail" Nothing
-            , Failure "fail"
+            , Final <| Failure "fail" Nothing
             )
         ]
