@@ -361,10 +361,10 @@ given the default error for `NotAsked` and `Loading` states.
     toResult True Loading
     --> Err True
 
-    toResult True Loading (Failure False)
+    toResult True (Failure False)
     --> Err False
 
-    toResult True Loading (Success "it worked!")
+    toResult True (Success "it worked!")
     --> Ok "it worked!"
 
 -}
